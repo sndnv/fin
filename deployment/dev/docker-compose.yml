@@ -1,0 +1,85 @@
+version: '3'
+
+services:
+  identity:
+    image: stasis-identity:dev-latest
+    ports:
+      - '10000:10000'
+      - '10001:10001'
+    environment:
+      - STASIS_IDENTITY_BOOTSTRAP_ENABLED=true
+      - STASIS_IDENTITY_BOOTSTRAP_CONFIG=/opt/docker/config/identity-bootstrap.conf
+      - STASIS_IDENTITY_LOGLEVEL=DEBUG
+      - STASIS_IDENTITY_SERVICE_API_INTERFACE=0.0.0.0
+      - STASIS_IDENTITY_SERVICE_API_PORT=10000
+      - STASIS_IDENTITY_SERVICE_API_CONTEXT_KEYSTORE_PATH=/opt/docker/certs/identity.p12
+      - STASIS_IDENTITY_SERVICE_TELEMETRY_METRICS_INTERFACE=0.0.0.0
+      - STASIS_IDENTITY_SERVICE_TELEMETRY_METRICS_PORT=10001
+      - STASIS_IDENTITY_TOKENS_ACCESS_ISSUER=fin-identity
+      - STASIS_IDENTITY_TOKENS_REFRESH_ALLOWED=true
+      - STASIS_IDENTITY_TOKENS_ACCESS_EXPIRATION=90 minutes
+      - STASIS_IDENTITY_UI_DEV_CLIENT_ID=0132f685-4380-4419-8f6e-67cb9da3d136
+      - STASIS_IDENTITY_UI_DEV_REDIRECT_URI=http://localhost:8080/login/callback
+      - STASIS_IDENTITY_UI_DEV_CLIENT_SECRET=test-secret
+      - STASIS_IDENTITY_UI_DEV_MASTER_PASSWORD=passw0rd
+      - AKKA_HTTP_CORS_ALLOWED_ORIGINS=*
+    volumes:
+      - ./config/identity-bootstrap.conf:/opt/docker/config/identity-bootstrap.conf
+      - ./secrets/identity.p12:/opt/docker/certs/identity.p12
+
+  identity-ui:
+    image: stasis-identity-ui:dev-latest
+    ports:
+      - '8080:8080'
+    environment:
+      - IDENTITY_UI_IDENTITY_SERVER=https://localhost:10000
+      - IDENTITY_UI_TOKEN_ENDPOINT=/oauth/token
+      - IDENTITY_UI_CLIENT_ID=0132f685-4380-4419-8f6e-67cb9da3d136
+      - IDENTITY_UI_REDIRECT_URI=http://localhost:8080/login/callback
+      - IDENTITY_UI_SCOPES=urn:stasis:identity:audience:manage-identity
+      - IDENTITY_UI_PASSWORD_DERIVATION_ENABLED=true
+      - IDENTITY_UI_PASSWORD_DERIVATION_SECRET_SIZE=16
+      - IDENTITY_UI_PASSWORD_DERIVATION_ITERATIONS=150000
+      - IDENTITY_UI_DERIVATION_SALT_PREFIX=changeme
+      - NGINX_SERVER_NAME=localhost
+      - NGINX_SERVER_PORT=8080
+      - NGINX_CORS_ALLOWED_ORIGIN=*
+
+  server:
+    image: fin-server:dev-latest
+    ports:
+      - '20000:20000' # API
+      - '20001:20001' # Prometheus
+    environment:
+      - FIN_SERVER_LOGLEVEL=DEBUG
+      - FIN_SERVER_SERVICE_API_INTERFACE=0.0.0.0
+      - FIN_SERVER_SERVICE_API_PORT=20000
+      - FIN_SERVER_SERVICE_API_CONTEXT_KEYSTORE_PATH=/opt/docker/certs/server.p12
+      - FIN_SERVER_SERVICE_TELEMETRY_METRICS_INTERFACE=0.0.0.0
+      - FIN_SERVER_SERVICE_TELEMETRY_METRICS_PORT=20001
+      - FIN_SERVER_CLIENTS_AUTHENTICATION_CONTEXT_ENABLED=true
+      - FIN_SERVER_CLIENTS_AUTHENTICATION_CONTEXT_TRUSTSTORE_PATH=/opt/docker/certs/identity.p12
+      - FIN_SERVER_AUTHENTICATORS_USERS_AUDIENCE=server-api
+      - FIN_SERVER_AUTHENTICATORS_USERS_JWKS_ENDPOINT=https://identity:10000/jwks/jwks.json
+      - FIN_SERVER_PERSISTENCE_DATABASE_INIT=true
+      - AKKA_HTTP_CORS_ALLOWED_ORIGINS=*
+    volumes:
+      - ./secrets/identity.p12:/opt/docker/certs/identity.p12
+      - ./secrets/server.p12:/opt/docker/certs/server.p12
+
+  prometheus:
+    image: prom/prometheus
+    ports:
+      - "19090:9090"
+    volumes:
+      - ./config/prometheus:/etc/prometheus
+
+  grafana:
+    image: grafana/grafana
+    ports:
+      - "13000:3000"
+    volumes:
+      - ./config/grafana:/etc/grafana/provisioning
+      - ../grafana/dashboards/identity:/etc/grafana/provisioning/dashboards/identity
+      - ../grafana/dashboards/server:/etc/grafana/provisioning/dashboards/server
+      - ../grafana/dashboards/jvm:/etc/grafana/provisioning/dashboards/jvm
