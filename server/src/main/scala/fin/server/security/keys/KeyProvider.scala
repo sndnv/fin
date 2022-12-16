@@ -1,0 +1,10 @@
+package fin.server.security.keys
+
+import java.security.Key
+import scala.concurrent.Future
+
+trait KeyProvider {
+  def key(id: Option[String]): Future[Key]
+  def issuer: String
+  def allowedAlgorithms: Seq[String]
+}
