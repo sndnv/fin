@@ -14,6 +14,8 @@ final case class CreateTransaction(
   category: String,
   notes: Option[String]
 ) {
+  require(!to.contains(from), "Cannot create a transaction with the same `from` and `to` accounts")
+
   def toTransaction: Transaction = {
     val id = Transaction.Id.generate()
 

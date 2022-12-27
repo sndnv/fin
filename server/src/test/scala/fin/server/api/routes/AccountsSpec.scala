@@ -174,6 +174,7 @@ class AccountsSpec extends UnitSpec with ScalatestRouteTest {
   )
 
   private val updateRequest = UpdateAccount(
+    externalId = "other-id",
     name = "other-name",
     description = "other-description"
   )

@@ -243,7 +243,7 @@ class TransactionsSpec extends UnitSpec with ScalatestRouteTest {
       amount = 123.4,
       currency = "EUR",
       date = LocalDate.now(),
-      category = "test-category",
+      category = "test-category-1",
       notes = Some("test-notes"),
       created = Instant.now(),
       updated = Instant.now(),
@@ -258,7 +258,7 @@ class TransactionsSpec extends UnitSpec with ScalatestRouteTest {
       amount = 123.4,
       currency = "EUR",
       date = LocalDate.now(),
-      category = "test-category",
+      category = "test-category-2",
       notes = Some("test-notes"),
       created = Instant.now(),
       updated = Instant.now(),
@@ -273,7 +273,7 @@ class TransactionsSpec extends UnitSpec with ScalatestRouteTest {
       amount = 123.4,
       currency = "EUR",
       date = LocalDate.now(),
-      category = "test-category",
+      category = "test-category-2",
       notes = Some("test-notes"),
       created = Instant.now(),
       updated = Instant.now(),
@@ -288,7 +288,7 @@ class TransactionsSpec extends UnitSpec with ScalatestRouteTest {
       amount = 123.4,
       currency = "EUR",
       date = LocalDate.parse("2020-03-01"),
-      category = "test-category",
+      category = "test-category-1",
       notes = Some("test-notes"),
       created = Instant.now(),
       updated = Instant.now(),
@@ -308,6 +308,7 @@ class TransactionsSpec extends UnitSpec with ScalatestRouteTest {
   )
 
   private val updateRequest = UpdateTransaction(
+    externalId = "other-id",
     `type` = Transaction.Type.Credit,
     from = 3,
     to = Some(4),

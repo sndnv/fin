@@ -4,7 +4,7 @@ import fin.server.UnitSpec
 import fin.server.model.Account
 
 class CreateAccountSpec extends UnitSpec {
-  "A CreateAccount request" should "be support creating an account" in {
+  "A CreateAccount request" should "support creating an account" in {
     val request = CreateAccount(
       externalId = "test-id",
       name = "test-name",
