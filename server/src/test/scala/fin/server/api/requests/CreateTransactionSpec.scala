@@ -6,7 +6,7 @@ import fin.server.model.Transaction
 import java.time.LocalDate
 
 class CreateTransactionSpec extends UnitSpec {
-  "A CreateTransaction request" should "be support creating a transaction" in {
+  "A CreateTransaction request" should "support creating a transaction" in {
     val request = CreateTransaction(
       `type` = Transaction.Type.Debit,
       from = 1,
@@ -37,5 +37,21 @@ class CreateTransactionSpec extends UnitSpec {
     )
 
     actual should be(expected)
+  }
+
+  it should "require different `from` and `to` accounts" in {
+    val request = CreateTransaction(
+      `type` = Transaction.Type.Debit,
+      from = 1,
+      to = Some(2),
+      amount = 123.4,
+      currency = "EUR",
+      date = LocalDate.now(),
+      category = "test-category",
+      notes = Some("test-notes")
+    )
+
+    noException should be thrownBy request.copy(from = 1, to = None)
+    an[IllegalArgumentException] should be thrownBy request.copy(from = 1, to = Some(1))
   }
 }

@@ -10,6 +10,7 @@ class UpdateTransactionSpec extends UnitSpec {
     val now = Instant.now()
 
     val request = UpdateTransaction(
+      externalId = "other-id",
       `type` = Transaction.Type.Credit,
       from = 3,
       to = Some(4),
@@ -39,6 +40,7 @@ class UpdateTransactionSpec extends UnitSpec {
     val actual = request.toTransaction(existing = original)
 
     val expected = original.copy(
+      externalId = request.externalId,
       `type` = request.`type`,
       from = request.from,
       to = request.to,
@@ -51,5 +53,22 @@ class UpdateTransactionSpec extends UnitSpec {
 
     actual should be(expected)
     actual.created should not be actual.updated
+  }
+
+  it should "require different `from` and `to` accounts" in {
+    val request = UpdateTransaction(
+      externalId = "other-id",
+      `type` = Transaction.Type.Credit,
+      from = 3,
+      to = Some(4),
+      amount = 45,
+      currency = "EUR",
+      date = LocalDate.now().minusDays(1),
+      category = "other-category",
+      notes = None
+    )
+
+    noException should be thrownBy request.copy(from = 1, to = None)
+    an[IllegalArgumentException] should be thrownBy request.copy(from = 1, to = Some(1))
   }
 }

@@ -8,6 +8,7 @@ import java.time.Instant
 class UpdateAccountSpec extends UnitSpec {
   "An UpdateAccount request" should "support updating existing accounts" in {
     val request = UpdateAccount(
+      externalId = "other-id",
       name = "other-name",
       description = "other-description"
     )
@@ -26,7 +27,12 @@ class UpdateAccountSpec extends UnitSpec {
 
     val actual = request.toAccount(existing = original)
 
-    val expected = original.copy(name = request.name, description = request.description, updated = actual.updated)
+    val expected = original.copy(
+      externalId = request.externalId,
+      name = request.name,
+      description = request.description,
+      updated = actual.updated
+    )
 
     actual should be(expected)
     actual.created should not be actual.updated

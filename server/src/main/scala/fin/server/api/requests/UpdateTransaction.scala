@@ -5,6 +5,7 @@ import fin.server.model.{Account, Transaction}
 import java.time.{Instant, LocalDate}
 
 final case class UpdateTransaction(
+  externalId: String,
   `type`: Transaction.Type,
   from: Account.Id,
   to: Option[Account.Id],
@@ -14,8 +15,11 @@ final case class UpdateTransaction(
   category: String,
   notes: Option[String]
 ) {
+  require(!to.contains(from), "Cannot update a transaction to have the same `from` and `to` accounts")
+
   def toTransaction(existing: Transaction): Transaction =
     existing.copy(
+      externalId = externalId,
       `type` = `type`,
       from = from,
       to = to,
