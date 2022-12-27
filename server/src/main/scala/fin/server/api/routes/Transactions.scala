@@ -155,13 +155,23 @@ class Transactions()(implicit ctx: RoutesContext) extends ApiRoutes with XmlDire
                   import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport._
                   import fin.server.api.Formats._
 
-                  log.debugN("User [{}] retrieved [{}] transactions for query [{}]", currentUser, query)
+                  log.debugN("User [{}] retrieved [{}] transactions for query [{}]", currentUser, transactions.length, query)
                   discardEntity & complete(transactions)
                 }
               case _ =>
                 log.debugN("USer [{}] provided an invalid or empty query parameter: [{}]", currentUser, query)
                 discardEntity & complete(StatusCodes.BadRequest)
             }
+          }
+        }
+      },
+      path("categories") {
+        get {
+          onSuccess(store.categories()) { categories =>
+            import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport._
+
+            log.debugN("User [{}] retrieved [{}] transaction categories for query [{}]", currentUser, categories.length)
+            discardEntity & complete(categories)
           }
         }
       }

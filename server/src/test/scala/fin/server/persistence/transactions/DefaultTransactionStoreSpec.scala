@@ -456,6 +456,44 @@ class DefaultTransactionStoreSpec extends UnitSpec with BeforeAndAfterAll {
     }
   }
 
+  it should "support retrieving all unique transaction categories" in {
+    val store = new DefaultTransactionStore(
+      tableName = "DefaultTransactionStoreSpec",
+      profile = H2Profile,
+      database = h2db
+    )
+
+    val now = Instant.now()
+
+    val transaction = Transaction(
+      id = UUID.randomUUID(),
+      externalId = "test-external-id-1",
+      `type` = Transaction.Type.Debit,
+      from = 1,
+      to = Some(2),
+      amount = 3,
+      currency = "EUR",
+      date = LocalDate.now(),
+      category = "test-category-1",
+      notes = Some("abcdefgh"),
+      created = now,
+      updated = now,
+      removed = None
+    )
+
+    for {
+      _ <- store.init()
+      _ <- store.create(transaction)
+      _ <- store.create(transaction.copy(id = UUID.randomUUID(), externalId = "test-id-2", category = "test-category-2"))
+      _ <- store.create(transaction.copy(id = UUID.randomUUID(), externalId = "test-id-3", category = "test-category-2"))
+      _ <- store.create(transaction.copy(id = UUID.randomUUID(), externalId = "test-id-4", category = "test-category-3"))
+      categories <- store.categories()
+      _ <- store.drop()
+    } yield {
+      categories.sorted should be(Seq("test-category-1", "test-category-2", "test-category-3"))
+    }
+  }
+
   private implicit val typedSystem: ActorSystem[Nothing] = ActorSystem(
     guardianBehavior = Behaviors.ignore,
     name = "DefaultTransactionStoreSpec"

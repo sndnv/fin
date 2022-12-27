@@ -79,6 +79,9 @@ class MockTransactionStore extends TransactionStore {
         .filter(t => t.externalId.contains(query) || t.category.contains(query) || t.notes.exists(_.contains(query)))
     )
 
+  override def categories(): Future[Seq[String]] =
+    Future.successful(store.values().asScala.toSeq.map(_.category).distinct)
+
   override def init(): Future[Done] = Future.successful(Done)
 
   override def drop(): Future[Done] = Future.successful(Done)

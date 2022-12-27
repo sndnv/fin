@@ -115,4 +115,13 @@ class DefaultTransactionStore(
         .filter(e => e.externalId.like(s"%$query%") || e.category.like(s"%$query%") || e.notes.like(s"%$query%"))
         .result
     )
+
+  override def categories(): Future[Seq[String]] =
+    database.run(
+      store
+        .filter(_.removed.isEmpty)
+        .distinctOn(_.category)
+        .map(_.category)
+        .result
+    )
 }
