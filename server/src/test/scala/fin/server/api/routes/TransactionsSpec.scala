@@ -217,6 +217,16 @@ class TransactionsSpec extends UnitSpec with ScalatestRouteTest {
     }
   }
 
+  they should "retrieve all transaction categories" in {
+    val fixtures = new TestFixtures {}
+    Future.sequence(transactions.map(fixtures.transactionStore.create)).await
+
+    Get("/categories") ~> fixtures.routes ~> check {
+      status should be(StatusCodes.OK)
+      responseAs[Seq[String]].sorted should be(Seq("test-category-1", "test-category-2"))
+    }
+  }
+
   private implicit val log: Logger = LoggerFactory.getLogger(this.getClass.getName)
 
   private trait TestFixtures {

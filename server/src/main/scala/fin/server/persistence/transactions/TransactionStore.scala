@@ -14,6 +14,7 @@ trait TransactionStore {
   def available(forPeriod: Period): Future[Seq[Transaction]]
   def all(forPeriod: Period): Future[Seq[Transaction]]
   def search(query: String): Future[Seq[Transaction]]
+  def categories(): Future[Seq[String]]
 
   def init(): Future[Done]
   def drop(): Future[Done]
