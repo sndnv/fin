@@ -12,7 +12,7 @@ class Accounts()(implicit ctx: RoutesContext) extends ApiRoutes {
   import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport._
   import fin.server.api.Formats._
 
-  private val store: AccountStore = ctx.accounts
+  private val store: AccountStore = ctx.persistence.accounts
 
   def routes(implicit currentUser: CurrentUser): Route =
     concat(
@@ -31,7 +31,7 @@ class Accounts()(implicit ctx: RoutesContext) extends ApiRoutes {
             entity(as[CreateAccount]) { request =>
               val account = request.toAccount
               onSuccess(store.create(account)) { _ =>
-                log.debugN("User [{}] successfully created account [{}]", currentUser, account.id)
+                log.debugN("User [{}] successfully created account [{}]", currentUser, account.name)
                 complete(StatusCodes.OK)
               }
             }

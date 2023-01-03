@@ -70,6 +70,15 @@ class MockTransactionStore extends TransactionStore {
         )
     )
 
+  override def to(period: Period): Future[Seq[Transaction]] =
+    Future.successful(
+      store
+        .values()
+        .asScala
+        .toSeq
+        .filter(t => t.date.isBefore(period.atLastDayOfMonth) || t.date.isEqual(period.atLastDayOfMonth))
+    )
+
   override def search(query: String): Future[Seq[Transaction]] =
     Future.successful(
       store

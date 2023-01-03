@@ -6,7 +6,7 @@ import fin.server.model.Transaction
 import java.time.{Instant, LocalDate}
 
 class UpdateTransactionSpec extends UnitSpec {
-  "An UpdateAccountUpdateTransaction request" should "support updating existing transactions" in {
+  "An UpdateTransaction request" should "support updating existing transactions" in {
     val now = Instant.now()
 
     val request = UpdateTransaction(

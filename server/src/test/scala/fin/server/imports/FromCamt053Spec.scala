@@ -106,7 +106,7 @@ class FromCamt053Spec extends UnitSpec {
     amount = amount,
     currency = "USD",
     date = date,
-    category = "imported-camt",
+    category = Defaults.Category,
     notes = notes,
     created = now,
     updated = now,

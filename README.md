@@ -48,7 +48,7 @@ Deployment, artifact and certificate generation scripts and configuration.
 
 **NOT** production ready but usable
 
-* `server` - *fin server and web UI* - **partial**; some features are not yet available; web UI is not available
+* `server` - *fin server and web UI* - **operational**
 
 ## Contributing
 

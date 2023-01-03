@@ -1,22 +1,24 @@
 package fin.server.api.routes
 
 import java.io.File
-
 import akka.http.scaladsl.marshalling.Marshal
 import akka.http.scaladsl.model.{ContentTypes, Multipart, RequestEntity, StatusCodes}
 import akka.http.scaladsl.server.Route
 import akka.http.scaladsl.testkit.ScalatestRouteTest
 import fin.server.UnitSpec
 import fin.server.api.requests.{CreateTransaction, UpdateTransaction}
-import fin.server.model.{Account, Period, Transaction}
+import fin.server.model.{Account, CategoryMapping, Period, Transaction}
+import fin.server.persistence.ServerPersistence
 import fin.server.persistence.accounts.AccountStore
-import fin.server.persistence.mocks.{MockAccountStore, MockTransactionStore}
+import fin.server.persistence.categories.CategoryMappingStore
+import fin.server.persistence.forecasts.ForecastStore
+import fin.server.persistence.mocks.{MockAccountStore, MockCategoryMappingStore, MockForecastStore, MockTransactionStore}
 import fin.server.persistence.transactions.TransactionStore
 import fin.server.security.CurrentUser
 import org.slf4j.{Logger, LoggerFactory}
+
 import java.time.{Instant, LocalDate}
 import java.util.UUID
-
 import scala.concurrent.Future
 
 class TransactionsSpec extends UnitSpec with ScalatestRouteTest {
@@ -38,7 +40,7 @@ class TransactionsSpec extends UnitSpec with ScalatestRouteTest {
     }
   }
 
-  they should "respond with all transactions, include removed ones (current period)" in {
+  they should "respond with all transactions, including removed ones (current period)" in {
     val fixtures = new TestFixtures {}
     Future.sequence(transactions.map(fixtures.transactionStore.create)).await
 
@@ -180,6 +182,91 @@ class TransactionsSpec extends UnitSpec with ScalatestRouteTest {
       currentPeriodTransactions.length should be(1)
       oldTransactions.length should be(9)
       transactionsForTargetAccount.length should be(1)
+
+      currentPeriodTransactions.map(_.category).distinct should be(Seq("imported"))
+      oldTransactions.map(_.category).distinct should be(Seq("imported"))
+      transactionsForTargetAccount.map(_.category).distinct should be(Seq("imported"))
+    }
+  }
+
+  they should "import transactions and apply category mappings" in {
+    val fixtures = new TestFixtures {}
+
+    val forAccount = Account(
+      id = 2,
+      externalId = "2",
+      name = "test-name",
+      description = "test-description",
+      created = Instant.now(),
+      updated = Instant.now(),
+      removed = None
+    )
+
+    val targetAccount = Account(
+      id = 3,
+      externalId = "XYZ123",
+      name = "test-name",
+      description = "test-description",
+      created = Instant.now(),
+      updated = Instant.now(),
+      removed = None
+    )
+
+    val mapping1 = CategoryMapping(
+      id = 1,
+      condition = CategoryMapping.Condition.Equals,
+      matcher = "abcdef",
+      category = "mapped-category-1",
+      created = Instant.now(),
+      updated = Instant.now(),
+      removed = None
+    )
+
+    val mapping2 = CategoryMapping(
+      id = 2,
+      condition = CategoryMapping.Condition.Equals,
+      matcher = "xyz123",
+      category = "mapped-category-2",
+      created = Instant.now(),
+      updated = Instant.now(),
+      removed = None
+    )
+
+    val mapping3 = CategoryMapping(
+      id = 3,
+      condition = CategoryMapping.Condition.Equals,
+      matcher = "xyz123",
+      category = "mapped-category-3",
+      created = Instant.now(),
+      updated = Instant.now(),
+      removed = None
+    )
+
+    fixtures.accountStore.create(forAccount).await
+    fixtures.accountStore.create(targetAccount).await
+    fixtures.categoryMappingStore.create(mapping1).await
+    fixtures.categoryMappingStore.create(mapping2).await
+    fixtures.categoryMappingStore.create(mapping3).await
+
+    val content = Multipart.FormData.fromFile(
+      name = "file",
+      contentType = ContentTypes.`application/octet-stream`,
+      file = new File("server/src/test/resources/camt/sample_gs_camt.053.zip")
+    )
+
+    Post("/import?import_type=camt053&for_account=2&upload_type=archive", content) ~> fixtures.routes ~> check {
+      status should be(StatusCodes.OK)
+      val currentPeriodTransactions = fixtures.transactionStore.all(forPeriod = Period.current).await
+      val oldTransactions = fixtures.transactionStore.all(forPeriod = Period("2021-08")).await
+      val transactionsForTargetAccount = (currentPeriodTransactions ++ oldTransactions).filter(_.to.exists(_ == targetAccount.id))
+
+      currentPeriodTransactions.length should be(1)
+      oldTransactions.length should be(9)
+      transactionsForTargetAccount.length should be(1)
+
+      currentPeriodTransactions.map(_.category).distinct.sorted should be(Seq("imported"))
+      oldTransactions.map(_.category).distinct.sorted should be(Seq("imported", "mapped-category-1", "mapped-category-3"))
+      transactionsForTargetAccount.map(_.category).distinct.sorted should be(Seq("mapped-category-3"))
     }
   }
 
@@ -232,10 +319,16 @@ class TransactionsSpec extends UnitSpec with ScalatestRouteTest {
   private trait TestFixtures {
     lazy val accountStore: AccountStore = MockAccountStore()
     lazy val transactionStore: TransactionStore = MockTransactionStore()
+    lazy val forecastStore: ForecastStore = MockForecastStore()
+    lazy val categoryMappingStore: CategoryMappingStore = MockCategoryMappingStore()
 
     lazy implicit val context: RoutesContext = RoutesContext.collect(
-      accounts = accountStore,
-      transactions = transactionStore
+      new ServerPersistence {
+        override val accounts: AccountStore = accountStore
+        override val transactions: TransactionStore = transactionStore
+        override val forecasts: ForecastStore = forecastStore
+        override val categoryMappings: CategoryMappingStore = categoryMappingStore
+      }
     )
 
     lazy val routes: Route = new Transactions().routes
@@ -299,7 +392,7 @@ class TransactionsSpec extends UnitSpec with ScalatestRouteTest {
       currency = "EUR",
       date = LocalDate.parse("2020-03-01"),
       category = "test-category-1",
-      notes = Some("test-notes"),
+      notes = Some("some-notes"),
       created = Instant.now(),
       updated = Instant.now(),
       removed = None

@@ -5,7 +5,7 @@ import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.{ExceptionHandler, Route}
 import akka.http.scaladsl.testkit.ScalatestRouteTest
 import fin.server.UnitSpec
-import fin.server.api.MessageResponse
+import fin.server.api.responses.MessageResponse
 import fin.server.security.exceptions.AuthorizationFailure
 import org.slf4j.LoggerFactory
 

@@ -21,6 +21,9 @@ services:
       - STASIS_IDENTITY_UI_DEV_CLIENT_ID=0132f685-4380-4419-8f6e-67cb9da3d136
       - STASIS_IDENTITY_UI_DEV_REDIRECT_URI=http://localhost:8080/login/callback
       - STASIS_IDENTITY_UI_DEV_CLIENT_SECRET=test-secret
+      - FIN_SERVER_UI_DEV_CLIENT_ID=e431b8ef-c95c-4da6-9d03-3c9180ef3ba3
+      - FIN_SERVER_UI_DEV_REDIRECT_URI=https://localhost:20000/manage/login/callback
+      - FIN_SERVER_UI_DEV_CLIENT_SECRET=test-secret
       - STASIS_IDENTITY_UI_DEV_MASTER_PASSWORD=passw0rd
       - AKKA_HTTP_CORS_ALLOWED_ORIGINS=*
     volumes:
@@ -35,15 +38,22 @@ services:
       - IDENTITY_UI_IDENTITY_SERVER=https://localhost:10000
       - IDENTITY_UI_TOKEN_ENDPOINT=/oauth/token
       - IDENTITY_UI_CLIENT_ID=0132f685-4380-4419-8f6e-67cb9da3d136
-      - IDENTITY_UI_REDIRECT_URI=http://localhost:8080/login/callback
+      - IDENTITY_UI_REDIRECT_URI=https://localhost:8080/login/callback
       - IDENTITY_UI_SCOPES=urn:stasis:identity:audience:manage-identity
-      - IDENTITY_UI_PASSWORD_DERIVATION_ENABLED=true
+      - IDENTITY_UI_PASSWORD_DERIVATION_ENABLED=false
       - IDENTITY_UI_PASSWORD_DERIVATION_SECRET_SIZE=16
       - IDENTITY_UI_PASSWORD_DERIVATION_ITERATIONS=150000
       - IDENTITY_UI_DERIVATION_SALT_PREFIX=changeme
       - NGINX_SERVER_NAME=localhost
-      - NGINX_SERVER_PORT=8080
+      - NGINX_SERVER_PORT=8080 ssl
+      - NGINX_SERVER_SSL_CERTIFICATE=/opt/docker/secrets/identity.cert.pem
+      - NGINX_SERVER_SSL_CERTIFICATE_KEY=/opt/docker/secrets/identity.key.pem
+      - NGINX_SERVER_SSL_PROTOCOLS=TLSv1 TLSv1.1 TLSv1.2
+      - NGINX_SERVER_SSL_CIPHERS=HIGH:!aNULL:!MD5
       - NGINX_CORS_ALLOWED_ORIGIN=*
+    volumes:
+      - ./secrets/identity.cert.pem:/opt/docker/secrets/identity.cert.pem
+      - ./secrets/identity.key.pem:/opt/docker/secrets/identity.key.pem
 
   server:
     image: fin-server:dev-latest
@@ -57,15 +67,30 @@ services:
       - FIN_SERVER_SERVICE_API_CONTEXT_KEYSTORE_PATH=/opt/docker/certs/server.p12
       - FIN_SERVER_SERVICE_TELEMETRY_METRICS_INTERFACE=0.0.0.0
       - FIN_SERVER_SERVICE_TELEMETRY_METRICS_PORT=20001
+      - FIN_SERVER_SERVICE_MODE=dev
+      - FIN_SERVER_SERVICE_DEVELOPMENT_RESOURCES_PATH=static
       - FIN_SERVER_CLIENTS_AUTHENTICATION_CONTEXT_ENABLED=true
       - FIN_SERVER_CLIENTS_AUTHENTICATION_CONTEXT_TRUSTSTORE_PATH=/opt/docker/certs/identity.p12
-      - FIN_SERVER_AUTHENTICATORS_USERS_AUDIENCE=server-api
+      - FIN_SERVER_AUTHENTICATORS_USERS_AUDIENCE=fin-server
       - FIN_SERVER_AUTHENTICATORS_USERS_JWKS_ENDPOINT=https://identity:10000/jwks/jwks.json
       - FIN_SERVER_PERSISTENCE_DATABASE_INIT=true
       - AKKA_HTTP_CORS_ALLOWED_ORIGINS=*
+      - FIN_SERVER_UI_AUTHORIZATION_ENDPOINT=https://localhost:8080/login/authorize
+      - FIN_SERVER_UI_TOKEN_ENDPOINT=https://localhost:10000/oauth/token
+      - FIN_SERVER_UI_AUTHENTICATION_CLIENT_ID=e431b8ef-c95c-4da6-9d03-3c9180ef3ba3
+      - FIN_SERVER_UI_AUTHENTICATION_REDIRECT_UI=https://localhost:20000/manage/login/callback
+      - FIN_SERVER_UI_AUTHENTICATION_SCOPE=urn:stasis:identity:audience:fin-server
+      - FIN_SERVER_UI_AUTHENTICATION_STATE_SIZE=64
+      - FIN_SERVER_UI_AUTHENTICATION_CODE_VERIFIER_SIZE=64
+      - FIN_SERVER_UI_COOKIES_AUTHENTICATION_TOKEN=fin-server-ui-authentication-token
+      - FIN_SERVER_UI_COOKIES_CODE_VERIFIER=fin-server-ui-code-verifier
+      - FIN_SERVER_UI_COOKIES_STATE=fin-server-ui-state
+      - FIN_SERVER_UI_COOKIES_SECURE=true
+      - FIN_SERVER_UI_COOKIES_EXPIRATION_TOLERANCE=15
     volumes:
       - ./secrets/identity.p12:/opt/docker/certs/identity.p12
       - ./secrets/server.p12:/opt/docker/certs/server.p12
+      - ../../server/src/main/resources/static:/opt/docker/static
 
   prometheus:
     image: prom/prometheus

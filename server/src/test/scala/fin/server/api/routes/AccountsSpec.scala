@@ -7,8 +7,11 @@ import akka.http.scaladsl.testkit.ScalatestRouteTest
 import fin.server.UnitSpec
 import fin.server.api.requests.{CreateAccount, UpdateAccount}
 import fin.server.model.Account
+import fin.server.persistence.ServerPersistence
 import fin.server.persistence.accounts.AccountStore
-import fin.server.persistence.mocks.{MockAccountStore, MockTransactionStore}
+import fin.server.persistence.categories.CategoryMappingStore
+import fin.server.persistence.forecasts.ForecastStore
+import fin.server.persistence.mocks.{MockAccountStore, MockCategoryMappingStore, MockForecastStore, MockTransactionStore}
 import fin.server.persistence.transactions.TransactionStore
 import fin.server.security.CurrentUser
 import org.slf4j.{Logger, LoggerFactory}
@@ -30,7 +33,7 @@ class AccountsSpec extends UnitSpec with ScalatestRouteTest {
     }
   }
 
-  they should "respond with all accounts, include removed ones" in {
+  they should "respond with all accounts, including removed ones" in {
     val fixtures = new TestFixtures {}
     Future.sequence(accounts.map(fixtures.accountStore.create)).await
 
@@ -126,10 +129,16 @@ class AccountsSpec extends UnitSpec with ScalatestRouteTest {
   private trait TestFixtures {
     lazy val accountStore: AccountStore = MockAccountStore()
     lazy val transactionStore: TransactionStore = MockTransactionStore()
+    lazy val forecastStore: ForecastStore = MockForecastStore()
+    lazy val categoryMappingStore: CategoryMappingStore = MockCategoryMappingStore()
 
     lazy implicit val context: RoutesContext = RoutesContext.collect(
-      accounts = accountStore,
-      transactions = transactionStore
+      new ServerPersistence {
+        override val accounts: AccountStore = accountStore
+        override val transactions: TransactionStore = transactionStore
+        override val forecasts: ForecastStore = forecastStore
+        override val categoryMappings: CategoryMappingStore = categoryMappingStore
+      }
     )
 
     lazy val routes: Route = new Accounts().routes

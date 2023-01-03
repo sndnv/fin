@@ -120,5 +120,5 @@ class EndpointContextSpec extends UnitSpec {
 
   private val config: Config = ConfigFactory.load().getConfig("fin.test.security.tls")
 
-  private val ports: mutable.Queue[Int] = (11000 to 11100).to(mutable.Queue)
+  private val ports: mutable.Queue[Int] = (11500 to 11600).to(mutable.Queue)
 }

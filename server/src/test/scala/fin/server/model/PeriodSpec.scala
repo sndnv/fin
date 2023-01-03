@@ -66,4 +66,34 @@ class PeriodSpec extends UnitSpec {
     Period(year = 2020, month = Month.NOVEMBER).toString should be("2020-11")
     Period(year = 2020, month = Month.DECEMBER).toString should be("2020-12")
   }
+
+  it should "support converting to LocalDate at first day of month" in {
+    Period(year = 2020, month = Month.JANUARY).atFirstDayOfMonth should be(LocalDate.parse("2020-01-01"))
+    Period(year = 2020, month = Month.FEBRUARY).atFirstDayOfMonth should be(LocalDate.parse("2020-02-01"))
+    Period(year = 2020, month = Month.MARCH).atFirstDayOfMonth should be(LocalDate.parse("2020-03-01"))
+    Period(year = 2020, month = Month.APRIL).atFirstDayOfMonth should be(LocalDate.parse("2020-04-01"))
+    Period(year = 2020, month = Month.MAY).atFirstDayOfMonth should be(LocalDate.parse("2020-05-01"))
+    Period(year = 2020, month = Month.JUNE).atFirstDayOfMonth should be(LocalDate.parse("2020-06-01"))
+    Period(year = 2020, month = Month.JULY).atFirstDayOfMonth should be(LocalDate.parse("2020-07-01"))
+    Period(year = 2020, month = Month.AUGUST).atFirstDayOfMonth should be(LocalDate.parse("2020-08-01"))
+    Period(year = 2020, month = Month.SEPTEMBER).atFirstDayOfMonth should be(LocalDate.parse("2020-09-01"))
+    Period(year = 2020, month = Month.OCTOBER).atFirstDayOfMonth should be(LocalDate.parse("2020-10-01"))
+    Period(year = 2020, month = Month.NOVEMBER).atFirstDayOfMonth should be(LocalDate.parse("2020-11-01"))
+    Period(year = 2020, month = Month.DECEMBER).atFirstDayOfMonth should be(LocalDate.parse("2020-12-01"))
+  }
+
+  it should "support converting to LocalDate at last day of month" in {
+    Period(year = 2020, month = Month.JANUARY).atLastDayOfMonth should be(LocalDate.parse("2020-01-31"))
+    Period(year = 2020, month = Month.FEBRUARY).atLastDayOfMonth should be(LocalDate.parse("2020-02-29"))
+    Period(year = 2020, month = Month.MARCH).atLastDayOfMonth should be(LocalDate.parse("2020-03-31"))
+    Period(year = 2020, month = Month.APRIL).atLastDayOfMonth should be(LocalDate.parse("2020-04-30"))
+    Period(year = 2020, month = Month.MAY).atLastDayOfMonth should be(LocalDate.parse("2020-05-31"))
+    Period(year = 2020, month = Month.JUNE).atLastDayOfMonth should be(LocalDate.parse("2020-06-30"))
+    Period(year = 2020, month = Month.JULY).atLastDayOfMonth should be(LocalDate.parse("2020-07-31"))
+    Period(year = 2020, month = Month.AUGUST).atLastDayOfMonth should be(LocalDate.parse("2020-08-31"))
+    Period(year = 2020, month = Month.SEPTEMBER).atLastDayOfMonth should be(LocalDate.parse("2020-09-30"))
+    Period(year = 2020, month = Month.OCTOBER).atLastDayOfMonth should be(LocalDate.parse("2020-10-31"))
+    Period(year = 2020, month = Month.NOVEMBER).atLastDayOfMonth should be(LocalDate.parse("2020-11-30"))
+    Period(year = 2020, month = Month.DECEMBER).atLastDayOfMonth should be(LocalDate.parse("2020-12-31"))
+  }
 }

@@ -314,6 +314,101 @@ class DefaultTransactionStoreSpec extends UnitSpec with BeforeAndAfterAll {
     }
   }
 
+  it should "retrieve transactions up to (and including) a specific period" in {
+    val store = new DefaultTransactionStore(
+      tableName = "DefaultTransactionStoreSpec",
+      profile = H2Profile,
+      database = h2db
+    )
+
+    val now = Instant.now()
+
+    val transaction1 = Transaction(
+      id = Transaction.Id.generate(),
+      externalId = "test-id-1",
+      `type` = Transaction.Type.Debit,
+      from = 1,
+      to = Some(2),
+      amount = 3,
+      currency = "EUR",
+      date = LocalDate.parse("2020-03-01"),
+      category = "test-category",
+      notes = None,
+      created = now,
+      updated = now,
+      removed = None
+    )
+
+    val transaction2 = Transaction(
+      id = Transaction.Id.generate(),
+      externalId = "test-id-2",
+      `type` = Transaction.Type.Debit,
+      from = 1,
+      to = Some(2),
+      amount = 3,
+      currency = "EUR",
+      date = LocalDate.parse("2020-04-02"),
+      category = "test-category",
+      notes = None,
+      created = now,
+      updated = now,
+      removed = None
+    )
+
+    val transaction3 = Transaction(
+      id = Transaction.Id.generate(),
+      externalId = "test-id-3",
+      `type` = Transaction.Type.Debit,
+      from = 1,
+      to = Some(2),
+      amount = 3,
+      currency = "EUR",
+      date = LocalDate.parse("2020-06-03"),
+      category = "test-category",
+      notes = None,
+      created = now,
+      updated = now,
+      removed = None
+    )
+
+    for {
+      _ <- store.init()
+      _ <- store.create(transaction1)
+      _ <- store.create(transaction2)
+      _ <- store.create(transaction3)
+      prevYear <- store.to(period = Period("2019-12"))
+      upToJan <- store.to(period = Period("2020-01"))
+      upToFeb <- store.to(period = Period("2020-02"))
+      upToMar <- store.to(period = Period("2020-03"))
+      upToApr <- store.to(period = Period("2020-04"))
+      upToMay <- store.to(period = Period("2020-05"))
+      upToJun <- store.to(period = Period("2020-06"))
+      upToJul <- store.to(period = Period("2020-07"))
+      upToAug <- store.to(period = Period("2020-08"))
+      upToSep <- store.to(period = Period("2020-09"))
+      upToOct <- store.to(period = Period("2020-10"))
+      upToNov <- store.to(period = Period("2020-11"))
+      upToDec <- store.to(period = Period("2020-12"))
+      nextYear <- store.to(period = Period("2021-01"))
+      _ <- store.drop()
+    } yield {
+      prevYear should be(empty)
+      upToJan should be(empty)
+      upToFeb should be(empty)
+      upToMar should be(Seq(transaction1))
+      upToApr should be(Seq(transaction1, transaction2))
+      upToMay should be(Seq(transaction1, transaction2))
+      upToJun should be(Seq(transaction1, transaction2, transaction3))
+      upToJul should be(Seq(transaction1, transaction2, transaction3))
+      upToAug should be(Seq(transaction1, transaction2, transaction3))
+      upToSep should be(Seq(transaction1, transaction2, transaction3))
+      upToOct should be(Seq(transaction1, transaction2, transaction3))
+      upToNov should be(Seq(transaction1, transaction2, transaction3))
+      upToDec should be(Seq(transaction1, transaction2, transaction3))
+      nextYear should be(Seq(transaction1, transaction2, transaction3))
+    }
+  }
+
   it should "mark transactions as removed" in {
     val store = new DefaultTransactionStore(
       tableName = "DefaultTransactionStoreSpec",

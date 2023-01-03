@@ -13,6 +13,7 @@ trait TransactionStore {
   def get(transaction: Transaction.Id): Future[Option[Transaction]]
   def available(forPeriod: Period): Future[Seq[Transaction]]
   def all(forPeriod: Period): Future[Seq[Transaction]]
+  def to(period: Period): Future[Seq[Transaction]]
   def search(query: String): Future[Seq[Transaction]]
   def categories(): Future[Seq[String]]
 

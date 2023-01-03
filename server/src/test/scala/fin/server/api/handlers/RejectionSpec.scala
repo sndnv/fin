@@ -5,7 +5,7 @@ import akka.http.scaladsl.server.Directives.{as, complete => compl, entity, get}
 import akka.http.scaladsl.server.{RejectionHandler, Route}
 import akka.http.scaladsl.testkit.ScalatestRouteTest
 import fin.server.UnitSpec
-import fin.server.api.MessageResponse
+import fin.server.api.responses.MessageResponse
 import org.slf4j.LoggerFactory
 import play.api.libs.json.JsArray
 

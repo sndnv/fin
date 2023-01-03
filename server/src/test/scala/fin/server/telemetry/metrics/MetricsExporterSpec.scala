@@ -80,7 +80,7 @@ class MetricsExporterSpec extends UnitSpec {
     }
   }
 
-  private val ports: mutable.Queue[Int] = (12000 to 12100).to(mutable.Queue)
+  private val ports: mutable.Queue[Int] = (12500 to 12600).to(mutable.Queue)
 
   private def getMetrics(
     metricsUrl: String
