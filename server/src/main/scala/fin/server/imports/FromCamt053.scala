@@ -78,7 +78,7 @@ object FromCamt053 {
       amount = fromEntry.Amt.value,
       currency = fromEntry.Amt.Ccy,
       date = date,
-      category = "imported-camt",
+      category = Defaults.Category,
       notes = fromEntry.AddtlNtryInf.map(_.trim),
       created = withImportTime,
       updated = withImportTime,

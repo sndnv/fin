@@ -293,7 +293,7 @@ class RemoteKeyProviderSpec extends UnitSpec with BeforeAndAfterAll {
     "RemoteKeyProviderSpec"
   )
 
-  private val ports: mutable.Queue[Int] = (10000 to 10100).to(mutable.Queue)
+  private val ports: mutable.Queue[Int] = (10500 to 10600).to(mutable.Queue)
 
   override protected def afterAll(): Unit =
     system.terminate()

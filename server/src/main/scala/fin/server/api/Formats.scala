@@ -1,8 +1,19 @@
 package fin.server.api
 
-import fin.server.api.requests.{CreateAccount, CreateTransaction, UpdateAccount, UpdateTransaction}
-import fin.server.api.responses.TransactionImportResult
-import fin.server.model.{Account, Transaction}
+import akka.http.scaladsl.unmarshalling.Unmarshaller
+import fin.server.api.requests.{
+  ApplyCategoryMappings,
+  CreateAccount,
+  CreateCategoryMapping,
+  CreateForecast,
+  CreateTransaction,
+  UpdateAccount,
+  UpdateCategoryMapping,
+  UpdateForecast,
+  UpdateTransaction
+}
+import fin.server.api.responses.{CategoryMappingsApplicationResult, MessageResponse, TransactionImportResult, TransactionSummary}
+import fin.server.model.{Account, CategoryMapping, Forecast, Period, Transaction}
 
 object Formats {
   import play.api.libs.json._
@@ -10,6 +21,11 @@ object Formats {
   implicit val jsonConfig: JsonConfiguration = JsonConfiguration(JsonNaming.SnakeCase)
 
   implicit val messageResponseFormat: Format[MessageResponse] = Json.format[MessageResponse]
+
+  implicit val periodFormat: Format[Period] = Format(
+    fjs = _.validate[String].map(Period.apply),
+    tjs = period => Json.toJson(period.toString)
+  )
 
   implicit val accountFormat: Format[Account] = Json.format[Account]
   implicit val createAccountFormat: Format[CreateAccount] = Json.format[CreateAccount]
@@ -36,4 +52,29 @@ object Formats {
     Json.format[TransactionImportResult.Imported]
   implicit val transactionImportResultFormat: Format[TransactionImportResult] =
     Json.format[TransactionImportResult]
+
+  implicit val forecastFormat: Format[Forecast] = Json.format[Forecast]
+  implicit val createForecastFormat: Format[CreateForecast] = Json.format[CreateForecast]
+  implicit val updateForecastFormat: Format[UpdateForecast] = Json.format[UpdateForecast]
+
+  implicit val stringToPeriod: Unmarshaller[String, Period] = Unmarshaller.strict(Period.apply)
+
+  implicit val transactionSummaryForCurrencyFormat: Format[TransactionSummary.ForCurrency] =
+    Json.format[TransactionSummary.ForCurrency]
+  implicit val transactionSummaryFormat: Format[TransactionSummary] =
+    Json.format[TransactionSummary]
+
+  implicit val categoryMappingConditionFormat: Format[CategoryMapping.Condition] = Format(
+    fjs = _.validate[String].map(CategoryMapping.Condition.apply),
+    tjs = condition => Json.toJson(condition.toString)
+  )
+
+  implicit val categoryMappingFormat: Format[CategoryMapping] = Json.format[CategoryMapping]
+  implicit val createCategoryMappingFormat: Format[CreateCategoryMapping] = Json.format[CreateCategoryMapping]
+  implicit val updateCategoryMappingFormat: Format[UpdateCategoryMapping] = Json.format[UpdateCategoryMapping]
+
+  implicit val applyCategoryMappingsFormat: Format[ApplyCategoryMappings] = Json.format[ApplyCategoryMappings]
+
+  implicit val categoryMappingsApplicationResultFormat: Format[CategoryMappingsApplicationResult] =
+    Json.format[CategoryMappingsApplicationResult]
 }

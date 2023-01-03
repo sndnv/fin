@@ -5,7 +5,7 @@ import akka.actor.typed.ActorSystem
 import akka.actor.typed.scaladsl.Behaviors
 import com.typesafe.{config => typesafe}
 import fin.server.api.ApiEndpoint
-import fin.server.persistence.ServerPersistence
+import fin.server.persistence.DefaultServerPersistence
 import fin.server.security.authenticators.{DefaultUserAuthenticator, UserAuthenticator}
 import fin.server.security.jwt.DefaultJwtAuthenticator
 import fin.server.security.keys.RemoteKeyProvider
@@ -18,8 +18,8 @@ import org.slf4j.{Logger, LoggerFactory}
 
 import java.time.Instant
 import java.util.concurrent.atomic.AtomicReference
-import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration._
+import scala.concurrent.{ExecutionContext, Future}
 
 trait Service {
   import Service._
@@ -31,14 +31,14 @@ trait Service {
     name = "fin-server-service"
   )
 
-  protected def systemConfig: typesafe.Config = system.settings.config
-
-  private val rawConfig: typesafe.Config = systemConfig.getConfig("fin.server")
+  private val rawConfig: typesafe.Config = system.settings.config.getConfig("fin.server")
   private val apiConfig: Config = Config(rawConfig.getConfig("service.api"))
   private val metricsConfig: Config = Config(rawConfig.getConfig("service.telemetry.metrics"))
 
   private val persistenceConfig = rawConfig.getConfig("persistence")
   private val authenticatorConfig = Config.UserAuthenticator(rawConfig.getConfig("authenticators.users"))
+
+  private val apiEndpointConfig = ApiEndpoint.Config(config = rawConfig.getConfig("service.api.endpoint"))
 
   private implicit val ec: ExecutionContext = system.executionContext
   private implicit val log: Logger = LoggerFactory.getLogger(this.getClass.getName)
@@ -49,6 +49,8 @@ trait Service {
       api.Metrics.default(meter = exporter.meter, namespace = Telemetry.Instrumentation)
     ).flatten
   )
+
+  private implicit val serviceMode: ServiceMode = ServiceMode(rawConfig.getConfig("service"))
 
   private val authenticationEndpointContext: Option[EndpointContext] =
     EndpointContext(rawConfig.getConfig("clients.authentication.context"))
@@ -68,13 +70,13 @@ trait Service {
     )
   )
 
-  val serverPersistence: ServerPersistence = ServerPersistence(
+  val serverPersistence: DefaultServerPersistence = DefaultServerPersistence(
     persistenceConfig = persistenceConfig
   )
 
   val endpoint: ApiEndpoint = ApiEndpoint(
-    accountStore = serverPersistence.accounts,
-    transactionStore = serverPersistence.transactions,
+    config = apiEndpointConfig,
+    persistence = serverPersistence,
     authenticator = authenticator
   )
 
@@ -91,6 +93,8 @@ trait Service {
     s"""
        |Config(
        |  service:
+       |    mode:         ${serviceMode.toString}
+       |
        |    api:
        |      interface:  ${apiConfig.interface}
        |      port:       ${apiConfig.port.toString}
@@ -98,6 +102,24 @@ trait Service {
        |        enabled:  ${apiConfig.context.nonEmpty.toString}
        |        protocol: ${apiConfig.context.map(_.config.protocol).getOrElse("none")}
        |        keystore: ${apiConfig.context.flatMap(_.config.keyStoreConfig).map(_.storePath).getOrElse("none")}
+       |
+       |      endpoint:
+       |        manage:
+       |          ui:
+       |            authorization-endpoint: ${apiEndpointConfig.manage.ui.authorizationEndpoint}
+       |            token-endpoint:         ${apiEndpointConfig.manage.ui.tokenEndpoint}
+       |            authentication:
+       |              client-id:            ${apiEndpointConfig.manage.ui.authentication.clientId}
+       |              redirect-uri:         ${apiEndpointConfig.manage.ui.authentication.redirectUri}
+       |              scope:                ${apiEndpointConfig.manage.ui.authentication.scope}
+       |              state-size:           ${apiEndpointConfig.manage.ui.authentication.stateSize.toString}
+       |              code-verifier-size:   ${apiEndpointConfig.manage.ui.authentication.codeVerifierSize.toString}
+       |            cookies:
+       |              authentication-token: ${apiEndpointConfig.manage.ui.cookies.authenticationToken}
+       |              code-verifier:        ${apiEndpointConfig.manage.ui.cookies.codeVerifier}
+       |              state:                ${apiEndpointConfig.manage.ui.cookies.state}
+       |              secure:               ${apiEndpointConfig.manage.ui.cookies.secure.toString}
+       |              expiration-tolerance: ${apiEndpointConfig.manage.ui.cookies.expirationTolerance.toString}
        |
        |    telemetry:
        |      metrics:

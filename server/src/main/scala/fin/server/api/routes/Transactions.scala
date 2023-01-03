@@ -16,7 +16,7 @@ import fin.server.security.CurrentUser
 class Transactions()(implicit ctx: RoutesContext) extends ApiRoutes with XmlDirectives {
   import Transactions._
 
-  private val store: TransactionStore = ctx.transactions
+  private val store: TransactionStore = ctx.persistence.transactions
 
   def routes(implicit currentUser: CurrentUser): Route =
     concat(
@@ -32,7 +32,12 @@ class Transactions()(implicit ctx: RoutesContext) extends ApiRoutes with XmlDire
             ) { (period, includeRemoved) =>
               val result = if (includeRemoved) store.all(forPeriod = period) else store.available(forPeriod = period)
               onSuccess(result) { transactions =>
-                log.debugN("User [{}] successfully retrieved [{}] transactions for period [{}]", currentUser, transactions.size)
+                log.debugN(
+                  "User [{}] successfully retrieved [{}] transactions for period [{}]",
+                  currentUser,
+                  transactions.size,
+                  period
+                )
                 discardEntity & complete(transactions)
               }
             }
@@ -98,49 +103,65 @@ class Transactions()(implicit ctx: RoutesContext) extends ApiRoutes with XmlDire
             "upload_type".as[XmlDirectives.UploadType]
           ) { case (ImportType.Camt053, forAccount, uploadType) =>
             xmlUpload[generated.Document](uploadType)(implicitly, log) { documents =>
-              onSuccess(ctx.accounts.all()) {
-                case accounts if accounts.exists(_.id == forAccount) =>
-                  val transactions = documents.flatMap { document =>
-                    imports.FromCamt053.transactions(
-                      forAccount = forAccount,
-                      fromStatements = document.BkToCstmrStmt.Stmt,
-                      withTargetAccountMapping = { target => accounts.find(_.externalId == target).map(_.id) }
-                    )(log)
-                  }
+              extractExecutionContext { implicit ec =>
+                val data = for {
+                  accounts <- ctx.persistence.accounts.all()
+                  mappings <- ctx.persistence.categoryMappings.available()
+                } yield {
+                  (accounts, mappings)
+                }
 
-                  onSuccess(store.load(transactions)) { case (successful, existing) =>
-                    import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport._
-                    import fin.server.api.Formats._
+                onSuccess(data) {
+                  case (accounts, mappings) if accounts.exists(_.id == forAccount) =>
+                    val transactions = documents
+                      .flatMap { document =>
+                        imports.FromCamt053.transactions(
+                          forAccount = forAccount,
+                          fromStatements = document.BkToCstmrStmt.Stmt,
+                          withTargetAccountMapping = { target => accounts.find(_.externalId == target).map(_.id) }
+                        )(log)
+                      }
+                      .map { transaction =>
+                        mappings.filter(_.matches(transaction.notes)).toList.sortBy(_.id) match {
+                          case _ :+ mapping => transaction.copy(category = mapping.category)
+                          case _            => transaction
+                        }
+                      }
 
-                    log.debugN(
-                      "User [{}] successfully imported [{}] CAMT.053 transaction(s) from [{}] document(s)",
-                      currentUser,
-                      transactions.length,
-                      documents.length
-                    )
+                    onSuccess(store.load(transactions)) { case (successful, existing) =>
+                      import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport._
+                      import fin.server.api.Formats._
 
-                    complete(
-                      TransactionImportResult(
-                        provided = TransactionImportResult.Provided(
-                          documents = documents.length,
-                          statements = documents.map(_.BkToCstmrStmt.Stmt.length).sum,
-                          entries = documents.map(_.BkToCstmrStmt.Stmt.map(_.Ntry.length).sum).sum
-                        ),
-                        imported = TransactionImportResult.Imported(
-                          successful = successful,
-                          existing = existing
+                      log.debugN(
+                        "User [{}] successfully imported [{}] CAMT.053 transaction(s) from [{}] document(s)",
+                        currentUser,
+                        transactions.length,
+                        documents.length
+                      )
+
+                      complete(
+                        TransactionImportResult(
+                          provided = TransactionImportResult.Provided(
+                            documents = documents.length,
+                            statements = documents.map(_.BkToCstmrStmt.Stmt.length).sum,
+                            entries = documents.map(_.BkToCstmrStmt.Stmt.map(_.Ntry.length).sum).sum
+                          ),
+                          imported = TransactionImportResult.Imported(
+                            successful = successful,
+                            existing = existing
+                          )
                         )
                       )
-                    )
-                  }
+                    }
 
-                case _ =>
-                  log.warnN(
-                    "User [{}] failed to import CAMT.053 transactions; account [{}] does not exist",
-                    currentUser,
-                    forAccount
-                  )
-                  complete(StatusCodes.BadRequest)
+                  case _ =>
+                    log.warnN(
+                      "User [{}] failed to import CAMT.053 transactions; account [{}] does not exist",
+                      currentUser,
+                      forAccount
+                    )
+                    complete(StatusCodes.BadRequest)
+                }
               }
             }
           }
@@ -170,7 +191,7 @@ class Transactions()(implicit ctx: RoutesContext) extends ApiRoutes with XmlDire
           onSuccess(store.categories()) { categories =>
             import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport._
 
-            log.debugN("User [{}] retrieved [{}] transaction categories for query [{}]", currentUser, categories.length)
+            log.debugN("User [{}] retrieved [{}] transaction categories", currentUser, categories.length)
             discardEntity & complete(categories)
           }
         }
@@ -181,7 +202,6 @@ class Transactions()(implicit ctx: RoutesContext) extends ApiRoutes with XmlDire
 object Transactions {
   def apply()(implicit ctx: RoutesContext): Transactions = new Transactions()
 
-  implicit val stringToPeriod: Unmarshaller[String, Period] = Unmarshaller.strict(Period.apply)
   implicit val stringToImportType: Unmarshaller[String, ImportType] = Unmarshaller.strict(ImportType.apply)
 
   sealed trait ImportType

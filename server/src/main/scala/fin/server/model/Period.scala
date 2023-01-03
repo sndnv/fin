@@ -1,10 +1,14 @@
 package fin.server.model
 
+import java.time.temporal.TemporalAdjusters
 import java.time.{LocalDate, Month}
 import scala.util.matching.Regex
 
 final case class Period(year: Int, month: Month) {
   override def toString: String = f"$year-${month.getValue}%02d"
+
+  def atFirstDayOfMonth: LocalDate = LocalDate.of(year, month, 1)
+  def atLastDayOfMonth: LocalDate = atFirstDayOfMonth.`with`(TemporalAdjusters.lastDayOfMonth())
 }
 
 object Period {

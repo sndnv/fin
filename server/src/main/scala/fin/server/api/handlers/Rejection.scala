@@ -4,7 +4,7 @@ import akka.actor.typed.scaladsl.LoggerOps
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.{RejectionHandler, ValidationRejection}
-import fin.server.api.MessageResponse
+import fin.server.api.responses.MessageResponse
 import org.slf4j.Logger
 
 object Rejection {

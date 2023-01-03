@@ -4,7 +4,7 @@ import akka.actor.typed.scaladsl.LoggerOps
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.ExceptionHandler
-import fin.server.api.MessageResponse
+import fin.server.api.responses.MessageResponse
 import fin.server.security.exceptions.AuthorizationFailure
 import org.slf4j.Logger
 

@@ -45,11 +45,11 @@ class DefaultTransactionStore(
   }
 
   private implicit val typeColumnType: BaseTypedType[Transaction.Type] = MappedColumnType.base[Transaction.Type, String](
-    {
+    tmap = {
       case Transaction.Type.Debit  => "debit"
       case Transaction.Type.Credit => "credit"
     },
-    {
+    tcomap = {
       case "debit"  => Transaction.Type.Debit
       case "credit" => Transaction.Type.Credit
     }
@@ -108,6 +108,16 @@ class DefaultTransactionStore(
         .filter(e => extractYear(e.date) === forPeriod.year && extractMonth(e.date) === forPeriod.month.getValue)
         .result
     )
+
+  override def to(period: Period): Future[Seq[Transaction]] = {
+    val maxDate = period.atLastDayOfMonth
+
+    database.run(
+      store
+        .filter(e => e.date <= maxDate)
+        .result
+    )
+  }
 
   override def search(query: String): Future[Seq[Transaction]] =
     database.run(

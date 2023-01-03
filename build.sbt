@@ -76,7 +76,12 @@ lazy val server = (project in file("./server"))
     ),
     dockerBaseImage := jdkDockerImage
   )
-  .enablePlugins(JavaAppPackaging, BuildInfoPlugin, ScalaxbPlugin)
+  .enablePlugins(
+    JavaAppPackaging,
+    BuildInfoPlugin,
+    ScalaxbPlugin,
+    SbtTwirl
+  )
 
 lazy val excludedWarts = Seq(
   Wart.Any // too many false positives; more info - https://github.com/wartremover/wartremover/issues/454
@@ -108,10 +113,11 @@ lazy val commonSettings = Seq(
     "-Xlint:inaccessible",
     "-Xlint:infer-any",
     "-Wconf:src=src_managed/.*:silent",
+    "-Wconf:src=twirl/.*:silent",
     s"-P:wartremover:excluded:${(Compile / sourceManaged).value}"
   ),
   dependencyUpdatesFilter -= moduleFilter(organization = "com.typesafe.akka"),
-  coverageExcludedPackages := "generated.*;scalaxb.*"
+  coverageExcludedPackages := "generated.*;scalaxb.*;(?:html|js).*;components\\.html.*"
 )
 
 lazy val dockerSettings = Seq(

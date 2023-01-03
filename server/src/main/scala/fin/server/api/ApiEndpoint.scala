@@ -7,66 +7,79 @@ import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server._
 import ch.megard.akka.http.cors.scaladsl.CorsDirectives._
 import fin.server.api.directives.{EntityDiscardingDirectives, LoggingDirectives}
-import fin.server.api.routes.{Accounts, RoutesContext, Service, Transactions}
-import fin.server.persistence.accounts.AccountStore
-import fin.server.persistence.transactions.TransactionStore
+import fin.server.api.routes._
+import fin.server.persistence.ServerPersistence
 import fin.server.security.authenticators.UserAuthenticator
 import fin.server.security.tls.EndpointContext
+import fin.server.service.ServiceMode
 import fin.server.telemetry.TelemetryContext
 import org.slf4j.{Logger, LoggerFactory}
 
-import scala.concurrent.{ExecutionContextExecutor, Future}
+import scala.concurrent.Future
 import scala.util.{Failure, Success}
 
 class ApiEndpoint(
-  accountStore: AccountStore,
-  transactionStore: TransactionStore,
+  config: ApiEndpoint.Config,
+  persistence: ServerPersistence,
   authenticator: UserAuthenticator
-)(implicit val system: ActorSystem[Nothing], override val telemetry: TelemetryContext)
+)(implicit val system: ActorSystem[Nothing], override val telemetry: TelemetryContext, mode: ServiceMode)
     extends LoggingDirectives
     with EntityDiscardingDirectives {
-  private implicit val ec: ExecutionContextExecutor = system.executionContext
-
   override protected val log: Logger = LoggerFactory.getLogger(this.getClass.getName)
 
-  private implicit val context: RoutesContext = RoutesContext(accountStore, transactionStore, ec, log)
+  private implicit val context: RoutesContext = RoutesContext(persistence, log)
 
-  private val service = Service()
+  private val manage = Manage(config = config.manage)
   private val accounts = Accounts()
   private val transactions = Transactions()
+  private val forecasts = Forecasts()
+  private val categories = Categories()
+  private val reports = Reports()
+  private val service = Service()
 
   private val sanitizingExceptionHandler: ExceptionHandler = handlers.Sanitizing.create(log)
   private val rejectionHandler: RejectionHandler = handlers.Rejection.create(log)
 
   val endpointRoutes: Route =
     (extractMethod & extractUri) { (method, uri) =>
-      extractCredentials {
-        case Some(credentials) =>
-          onComplete(authenticator.authenticate(credentials)) {
-            case Success(user) =>
-              concat(
-                pathPrefix("accounts") { accounts.routes(currentUser = user) },
-                pathPrefix("transactions") { transactions.routes(currentUser = user) },
-                pathPrefix("service") { service.routes }
-              )
+      concat(
+        pathPrefixTest(Slash | PathEnd | "manage") {
+          concat(
+            pathEndOrSingleSlash { redirect("manage", StatusCodes.PermanentRedirect) },
+            pathPrefix("manage") { manage.routes }
+          )
+        },
+        extractCredentials {
+          case Some(credentials) =>
+            onComplete(authenticator.authenticate(credentials)) {
+              case Success(user) =>
+                concat(
+                  pathPrefix("accounts") { accounts.routes(currentUser = user) },
+                  pathPrefix("transactions") { transactions.routes(currentUser = user) },
+                  pathPrefix("forecasts") { forecasts.routes(currentUser = user) },
+                  pathPrefix("categories") { categories.routes(currentUser = user) },
+                  pathPrefix("reports") { reports.routes(currentUser = user) },
+                  pathPrefix("service") { service.routes }
+                )
 
-            case Failure(e) =>
-              log.warn(
-                "Rejecting [{}] request for [{}] with invalid credentials: [{} - {}]",
-                method.value,
-                uri,
-                e.getClass.getSimpleName,
-                e.getMessage
-              )
+              case Failure(e) =>
+                log.warn(
+                  "Rejecting [{}] request for [{}] with invalid credentials: [{} - {}]",
+                  method.value,
+                  uri,
+                  e.getClass.getSimpleName,
+                  e.getMessage
+                )
 
-              discardEntity & complete(StatusCodes.Unauthorized)
-          }
+                discardEntity & complete(StatusCodes.Unauthorized)
+            }
 
-        case None =>
-          log.warn("Rejecting [{}] request for [{}] with no credentials", method.value, uri)
+          case None =>
+            log.warn("Rejecting [{}] request for [{}] with no credentials", method.value, uri)
 
-          discardEntity & complete(StatusCodes.Unauthorized)
-      }
+            discardEntity & complete(StatusCodes.Unauthorized)
+        }
+      )
     }
 
   def start(interface: String, port: Int, context: Option[EndpointContext]): Future[Http.ServerBinding] = {
@@ -91,13 +104,19 @@ class ApiEndpoint(
 
 object ApiEndpoint {
   def apply(
-    accountStore: AccountStore,
-    transactionStore: TransactionStore,
+    config: Config,
+    persistence: ServerPersistence,
     authenticator: UserAuthenticator
-  )(implicit system: ActorSystem[Nothing], telemetry: TelemetryContext) =
-    new ApiEndpoint(
-      accountStore = accountStore,
-      transactionStore = transactionStore,
-      authenticator = authenticator
+  )(implicit system: ActorSystem[Nothing], telemetry: TelemetryContext, mode: ServiceMode) =
+    new ApiEndpoint(config = config, persistence = persistence, authenticator = authenticator)
+
+  final case class Config(
+    manage: Manage.Config
+  )
+
+  object Config {
+    def apply(config: com.typesafe.config.Config): Config = Config(
+      manage = Manage.Config(config.getConfig("manage"))
     )
+  }
 }

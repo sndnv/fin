@@ -9,12 +9,18 @@ import akka.http.scaladsl.testkit.ScalatestRouteTest
 import akka.http.scaladsl.unmarshalling.Unmarshal
 import fin.server.UnitSpec
 import fin.server.api.requests.CreateAccount
-import fin.server.model.{Account, Transaction}
+import fin.server.api.responses.MessageResponse
+import fin.server.api.routes.Manage
+import fin.server.model.{Account, CategoryMapping, Forecast, Transaction}
+import fin.server.persistence.ServerPersistence
 import fin.server.persistence.accounts.AccountStore
-import fin.server.persistence.mocks.{MockAccountStore, MockTransactionStore}
+import fin.server.persistence.categories.CategoryMappingStore
+import fin.server.persistence.forecasts.ForecastStore
+import fin.server.persistence.mocks.{MockAccountStore, MockCategoryMappingStore, MockForecastStore, MockTransactionStore}
 import fin.server.persistence.transactions.TransactionStore
 import fin.server.security.authenticators.UserAuthenticator
 import fin.server.security.mocks.MockUserAuthenticator
+import fin.server.service.ServiceMode
 import fin.server.telemetry.TelemetryContext
 import fin.server.telemetry.mocks.MockTelemetryContext
 
@@ -24,7 +30,17 @@ import scala.collection.mutable
 import scala.concurrent.Future
 
 class ApiEndpointSpec extends UnitSpec with ScalatestRouteTest {
-  "An ApiEndpoint" should "successfully authenticate users" in {
+  "An ApiEndpoint" should "load its config" in {
+    val actual = ApiEndpoint.Config(
+      config = com.typesafe.config.ConfigFactory
+        .load()
+        .getConfig("fin.test.server.service.endpoint")
+    )
+
+    actual should be(config)
+  }
+
+  it should "successfully authenticate users" in {
     import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport._
     import fin.server.api.Formats._
 
@@ -122,6 +138,105 @@ class ApiEndpointSpec extends UnitSpec with ScalatestRouteTest {
     }
   }
 
+  it should "provide routes for forecasts" in {
+    import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport._
+    import fin.server.api.Formats._
+
+    val fixtures = new TestFixtures {}
+
+    val forecast = Forecast(
+      id = 0,
+      `type` = Transaction.Type.Debit,
+      account = 1,
+      amount = 123.4,
+      currency = "EUR",
+      date = None,
+      category = "test-category",
+      notes = Some("test-notes"),
+      disregardAfter = 1,
+      created = Instant.now(),
+      updated = Instant.now(),
+      removed = None
+    )
+
+    fixtures.forecastStore.create(forecast).await
+
+    Get("/forecasts").addCredentials(testCredentials) ~> fixtures.endpoint.endpointRoutes ~> check {
+      status should be(StatusCodes.OK)
+      responseAs[Seq[Forecast]] should be(Seq(forecast))
+    }
+  }
+
+  it should "provide routes for category mappings" in {
+    import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport._
+    import fin.server.api.Formats._
+
+    val fixtures = new TestFixtures {}
+
+    val mapping = CategoryMapping(
+      id = 0,
+      condition = CategoryMapping.Condition.Equals,
+      matcher = "test-matcher",
+      category = "test-category",
+      created = Instant.now(),
+      updated = Instant.now(),
+      removed = None
+    )
+
+    fixtures.categoryMappingStore.create(mapping).await
+
+    Get("/categories").addCredentials(testCredentials) ~> fixtures.endpoint.endpointRoutes ~> check {
+      status should be(StatusCodes.OK)
+      responseAs[Seq[CategoryMapping]] should be(Seq(mapping))
+    }
+  }
+
+  it should "provide routes for reports" in {
+    import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport._
+
+    val fixtures = new TestFixtures {}
+
+    val forecast = Forecast(
+      id = 0,
+      `type` = Transaction.Type.Debit,
+      account = 1,
+      amount = 123.4,
+      currency = "EUR",
+      date = None,
+      category = "test-category",
+      notes = Some("test-notes"),
+      disregardAfter = 1,
+      created = Instant.now(),
+      updated = Instant.now(),
+      removed = None
+    )
+
+    fixtures.forecastStore.create(forecast).await
+
+    Get("/reports/categories").addCredentials(testCredentials) ~> fixtures.endpoint.endpointRoutes ~> check {
+      status should be(StatusCodes.OK)
+      responseAs[Seq[String]] should be(Seq("test-category"))
+    }
+  }
+
+  it should "provide routes for management" in {
+    val fixtures = new TestFixtures {}
+
+    Get("/manage") ~> fixtures.endpoint.endpointRoutes ~> check {
+      status should be(StatusCodes.OK)
+      responseAs[String] should include("<!doctype html>")
+    }
+  }
+
+  it should "redirect root requests to management" in {
+    val fixtures = new TestFixtures {}
+
+    Get("/") ~> fixtures.endpoint.endpointRoutes ~> check {
+      headers.map(_.toString()) should be(Seq("Location: manage"))
+      status should be(StatusCodes.PermanentRedirect)
+    }
+  }
+
   it should "provide service routes" in {
     val fixtures = new TestFixtures {}
 
@@ -135,10 +250,15 @@ class ApiEndpointSpec extends UnitSpec with ScalatestRouteTest {
     import fin.server.api.Formats._
 
     val endpoint = new ApiEndpoint(
-      accountStore = new MockAccountStore() {
-        override def available(): Future[Seq[Account]] = Future.failed(new RuntimeException("Test failure"))
+      config = config,
+      persistence = new ServerPersistence {
+        override val accounts: AccountStore = new MockAccountStore() {
+          override def available(): Future[Seq[Account]] = Future.failed(new RuntimeException("Test failure"))
+        }
+        override val transactions: TransactionStore = MockTransactionStore()
+        override val forecasts: ForecastStore = MockForecastStore()
+        override val categoryMappings: CategoryMappingStore = MockCategoryMappingStore()
       },
-      transactionStore = MockTransactionStore(),
       authenticator = new MockUserAuthenticator(testUser, testPassword)
     )
 
@@ -169,8 +289,13 @@ class ApiEndpointSpec extends UnitSpec with ScalatestRouteTest {
     import fin.server.api.Formats._
 
     val endpoint = new ApiEndpoint(
-      accountStore = MockAccountStore(),
-      transactionStore = MockTransactionStore(),
+      config = config,
+      persistence = new ServerPersistence {
+        override val accounts: AccountStore = MockAccountStore()
+        override val transactions: TransactionStore = MockTransactionStore()
+        override val forecasts: ForecastStore = MockForecastStore()
+        override val categoryMappings: CategoryMappingStore = MockCategoryMappingStore()
+      },
       authenticator = new MockUserAuthenticator(testUser, testPassword)
     )
 
@@ -204,15 +329,24 @@ class ApiEndpointSpec extends UnitSpec with ScalatestRouteTest {
 
   private implicit val telemetry: TelemetryContext = MockTelemetryContext()
 
+  private implicit val serviceMode: ServiceMode = ServiceMode.Production
+
   private trait TestFixtures {
     lazy val accountStore: AccountStore = MockAccountStore()
     lazy val transactionStore: TransactionStore = MockTransactionStore()
+    lazy val forecastStore: ForecastStore = MockForecastStore()
+    lazy val categoryMappingStore: CategoryMappingStore = MockCategoryMappingStore()
 
-    lazy val authenticator: UserAuthenticator = new MockUserAuthenticator(testUser, testPassword)
+    private lazy val authenticator: UserAuthenticator = new MockUserAuthenticator(testUser, testPassword)
 
     lazy val endpoint: ApiEndpoint = new ApiEndpoint(
-      accountStore = accountStore,
-      transactionStore = transactionStore,
+      config = config,
+      persistence = new ServerPersistence {
+        override val accounts: AccountStore = accountStore
+        override val transactions: TransactionStore = transactionStore
+        override val forecasts: ForecastStore = forecastStore
+        override val categoryMappings: CategoryMappingStore = categoryMappingStore
+      },
       authenticator = authenticator
     )
   }
@@ -222,5 +356,28 @@ class ApiEndpointSpec extends UnitSpec with ScalatestRouteTest {
 
   private val testCredentials = BasicHttpCredentials(username = testUser, password = testPassword)
 
-  private val ports: mutable.Queue[Int] = (13000 to 13100).to(mutable.Queue)
+  private val ports: mutable.Queue[Int] = (13500 to 13600).to(mutable.Queue)
+
+  private val config = ApiEndpoint.Config(
+    manage = Manage.Config(
+      ui = Manage.Config.Ui(
+        authorizationEndpoint = "a",
+        tokenEndpoint = "b",
+        authentication = Manage.Config.Ui.Authentication(
+          clientId = "c",
+          redirectUri = "d",
+          scope = "e",
+          stateSize = 1,
+          codeVerifierSize = 2
+        ),
+        cookies = Manage.Config.Ui.Cookies(
+          authenticationToken = "f",
+          codeVerifier = "g",
+          state = "h",
+          secure = true,
+          expirationTolerance = 3
+        )
+      )
+    )
+  )
 }
