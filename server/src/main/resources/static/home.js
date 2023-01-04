@@ -130,7 +130,7 @@ function initHome() {
                         if (data.from in accounts) {
                             return accounts[data.from].name;
                         } else {
-                            return data.account;
+                            return data.from;
                         }
                     },
                 },
@@ -140,7 +140,7 @@ function initHome() {
                         if (data.to in accounts) {
                             return accounts[data.to].name;
                         } else {
-                            return data.account;
+                            return data.to;
                         }
                     },
                 },
@@ -166,7 +166,7 @@ function initHome() {
                 {
                     data: null,
                     render: function (data, type, row, meta) {
-                        if (type === 'sort' || data.entry_type === 'forecast') {
+                        if (type === 'sort' || !data.notes) {
                             return data.category;
                         } else {
                             return `
