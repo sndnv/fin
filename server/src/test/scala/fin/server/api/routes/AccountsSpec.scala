@@ -1,7 +1,7 @@
 package fin.server.api.routes
 
 import akka.http.scaladsl.marshalling.Marshal
-import akka.http.scaladsl.model.{RequestEntity, StatusCodes}
+import akka.http.scaladsl.model.{ContentTypes, Multipart, RequestEntity, StatusCodes}
 import akka.http.scaladsl.server.Route
 import akka.http.scaladsl.testkit.ScalatestRouteTest
 import fin.server.UnitSpec
@@ -16,6 +16,7 @@ import fin.server.persistence.transactions.TransactionStore
 import fin.server.security.CurrentUser
 import org.slf4j.{Logger, LoggerFactory}
 
+import java.io.File
 import java.time.Instant
 import scala.concurrent.Future
 
@@ -49,7 +50,7 @@ class AccountsSpec extends UnitSpec with ScalatestRouteTest {
       status should be(StatusCodes.OK)
 
       fixtures.accountStore
-        .get(account = 0)
+        .get(account = 1)
         .map { account => account.isDefined should be(true) }
     }
   }
@@ -121,6 +122,57 @@ class AccountsSpec extends UnitSpec with ScalatestRouteTest {
       fixtures.accountStore
         .get(accounts.head.id)
         .map { account => account should be(None) }
+    }
+  }
+
+  they should "support importing accounts" in {
+    val fixtures = new TestFixtures {}
+
+    val content = Multipart.FormData.fromFile(
+      name = "file",
+      contentType = ContentTypes.`application/octet-stream`,
+      file = new File("server/src/test/resources/json/accounts.json")
+    )
+
+    Post("/import", content) ~> fixtures.routes ~> check {
+      status should be(StatusCodes.OK)
+      fixtures.accountStore.all().map(_.toList.sortBy(_.externalId)).map {
+        case first :: second :: third :: Nil =>
+          first.externalId should be("test-external-id-1")
+          first.name should be("test-name-1")
+          first.description should be("test-description-1")
+
+          second.externalId should be("test-external-id-2")
+          second.name should be("test-name-2")
+          second.description should be("test-description-2")
+
+          third.externalId should be("test-external-id-3")
+          third.name should be("test-name-3")
+          third.description should be("test-description-3")
+
+        case other =>
+          fail(s"Unexpected result received: [$other]")
+      }
+    }
+  }
+
+  they should "fail to import already existing accounts" in {
+    val fixtures = new TestFixtures {}
+
+    val content = Multipart.FormData.fromFile(
+      name = "file",
+      contentType = ContentTypes.`application/octet-stream`,
+      file = new File("server/src/test/resources/json/accounts.json")
+    )
+
+    Post("/import", content) ~> fixtures.routes ~> check {
+      status should be(StatusCodes.OK)
+      fixtures.accountStore.all().await.length should be(3)
+    }
+
+    Post("/import", content) ~> fixtures.routes ~> check {
+      status should be(StatusCodes.Conflict)
+      fixtures.accountStore.all().await.length should be(3)
     }
   }
 

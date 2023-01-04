@@ -14,7 +14,11 @@ class MockForecastStore extends ForecastStore {
   private val store = new ConcurrentHashMap[Int, Forecast]()
 
   override def create(forecast: Forecast): Future[Done] = {
-    store.put(forecast.id, forecast)
+    store.put(
+      if (forecast.id != 0) { forecast.id }
+      else { store.size() + 1 },
+      forecast
+    )
     Future.successful(Done)
   }
 

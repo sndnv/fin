@@ -73,6 +73,63 @@ function initCategories() {
                 titleAttr: 'Export as PDF',
             },
             {
+                className: 'btn-primary btn-sm',
+                text: '<i class="bi bi-filetype-json"></i>',
+                titleAttr: 'Export as JSON',
+                action: function (e, dt, button, config) {
+                    let data = dt.buttons.exportData().body
+                        .map(function (row) {
+                            return {
+                                'condition': row[1].split(' ').join('_'),
+                                'matcher': row[2],
+                                'category': row[3]
+                            };
+                        });
+
+                    $.fn.dataTable.fileSave(new Blob([JSON.stringify(data)]), 'category_mappings.json');
+                }
+            },
+            {
+                text: '<i class="bi bi-file-earmark-arrow-up"></i>',
+                titleAttr: 'Import Category Mappings',
+                className: 'btn-warning btn-sm',
+                action: function (e, dt, node, config) {
+                    showFormModal(
+                        'Import Category Mappings',
+                        createImportForm('import-category-mappings'),
+                        'Import',
+                        function () {
+                            let request = validateAndLoadImportFormData('import-category-mappings');
+
+                            if (request) {
+                                $.ajax({
+                                    type: 'POST',
+                                    url: `/categories/import`,
+                                    processData: false,
+                                    contentType: false,
+                                    data: request.file,
+                                    success: function () {
+                                        showSuccessToast('Successfully imported category mappings');
+                                        table.ajax.reload();
+                                        hideModal();
+                                    },
+                                    error: function (xhr, textStatus, errorThrown) {
+                                        showErrorToast(`Failed to imported category mappings: [${errorThrown}]`);
+                                    },
+                                    beforeSend: function (xhr) {
+                                        xhr.setRequestHeader("Authorization", `Bearer ${get_token()}`);
+                                    },
+                                });
+
+                                return false;
+                            } else {
+                                return true;
+                            }
+                        }
+                    );
+                }
+            },
+            {
                 text: '<i class="fab bi bi-tags"></i>',
                 titleAttr: 'Add Category Mappings',
                 className: 'btn-warning btn-sm',
@@ -381,4 +438,55 @@ function mappingResultItem(title, subtitle, count, countClass) {
             <span class="badge ${countClass}">${count}</span>
         </li>
     `;
+}
+
+function createImportForm(id) {
+    return `
+        <form id="${id}" class="needs-validation" novalidate>
+            <div class="input-group">
+                <label class="input-group-text" for="fileInput">File</label>
+                <input type="file" class="form-control" id="fileInput" placeholder="File">
+                <div class="invalid-feedback">A file must be provided</div>
+            </div>
+        </form>
+    `;
+}
+
+function validateAndLoadImportFormData(id) {
+    let form = $(`#${id}`);
+    let fileInput = form.find('#fileInput');
+
+    var inputs = {
+        'file': fileInput,
+    };
+
+    for (const [key, input] of Object.entries(inputs)) {
+        let inputValue = (input.val() || '').trim();
+
+        if (!inputValue || inputValue.length === 0) {
+            input.addClass('is-invalid');
+        } else {
+            input.removeClass('is-invalid');
+        }
+    }
+
+    if (Object.values(inputs).every((input) => !input.hasClass('is-invalid'))) {
+        let request = Object.entries(inputs).reduce(function (collected, [key, input]) {
+            let inputValue = input.val().trim();
+
+            if (key === 'file') {
+                let data = new FormData();
+                data.append(key, input.prop('files')[0]);
+                collected[key] = data;
+            } else {
+                collected[key] = inputValue;
+            }
+
+            return collected;
+        }, {});
+
+        return request;
+    } else {
+        return null;
+    }
 }

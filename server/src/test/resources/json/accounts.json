@@ -1,0 +1,17 @@
+[
+  {
+    "external_id": "test-external-id-1",
+    "name": "test-name-1",
+    "description": "test-description-1"
+  },
+  {
+    "external_id": "test-external-id-2",
+    "name": "test-name-2",
+    "description": "test-description-2"
+  },
+  {
+    "external_id": "test-external-id-3",
+    "name": "test-name-3",
+    "description": "test-description-3"
+  }
+]

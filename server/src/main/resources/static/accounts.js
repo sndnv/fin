@@ -122,6 +122,63 @@ function initAccounts() {
                 text: '<i class="bi bi-file-pdf"></i>',
                 titleAttr: 'Export as PDF',
             },
+            {
+                className: 'btn-primary btn-sm',
+                text: '<i class="bi bi-filetype-json"></i>',
+                titleAttr: 'Export as JSON',
+                action: function (e, dt, button, config) {
+                    let data = dt.buttons.exportData().body
+                        .map(function (row) {
+                            return {
+                                'external_id': row[1],
+                                'name': row[2],
+                                'description': row[3]
+                            };
+                        });
+
+                    $.fn.dataTable.fileSave(new Blob([JSON.stringify(data)]), 'accounts.json');
+                }
+            },
+            {
+                text: '<i class="bi bi-file-earmark-arrow-up"></i>',
+                titleAttr: 'Import Accounts from JSON',
+                className: 'btn-warning btn-sm',
+                action: function (e, dt, node, config) {
+                    showFormModal(
+                        'Import Accounts from JSON',
+                        createImportForm('import-accounts'),
+                        'Import',
+                        function () {
+                            let request = validateAndLoadImportFormData('import-accounts');
+
+                            if (request) {
+                                $.ajax({
+                                    type: 'POST',
+                                    url: `/accounts/import`,
+                                    processData: false,
+                                    contentType: false,
+                                    data: request.file,
+                                    success: function () {
+                                        showSuccessToast('Successfully imported accounts');
+                                        table.ajax.reload();
+                                        hideModal();
+                                    },
+                                    error: function (xhr, textStatus, errorThrown) {
+                                        showErrorToast(`Failed to imported accounts: [${errorThrown === 'Conflict' ? 'One or more accounts already exist' : errorThrown}]`);
+                                    },
+                                    beforeSend: function (xhr) {
+                                        xhr.setRequestHeader("Authorization", `Bearer ${get_token()}`);
+                                    },
+                                });
+
+                                return false;
+                            } else {
+                                return true;
+                            }
+                        }
+                    );
+                }
+            },
         ],
         columns: [
             { data: 'id' },
@@ -308,4 +365,55 @@ function editEventHandler(table, cell, field) {
 
         setUpdateButtonState(updateButton);
     };
+}
+
+function createImportForm(id) {
+    return `
+        <form id="${id}" class="needs-validation" novalidate>
+            <div class="input-group">
+                <label class="input-group-text" for="fileInput">File</label>
+                <input type="file" class="form-control" id="fileInput" placeholder="File">
+                <div class="invalid-feedback">A file must be provided</div>
+            </div>
+        </form>
+    `;
+}
+
+function validateAndLoadImportFormData(id) {
+    let form = $(`#${id}`);
+    let fileInput = form.find('#fileInput');
+
+    var inputs = {
+        'file': fileInput,
+    };
+
+    for (const [key, input] of Object.entries(inputs)) {
+        let inputValue = (input.val() || '').trim();
+
+        if (!inputValue || inputValue.length === 0) {
+            input.addClass('is-invalid');
+        } else {
+            input.removeClass('is-invalid');
+        }
+    }
+
+    if (Object.values(inputs).every((input) => !input.hasClass('is-invalid'))) {
+        let request = Object.entries(inputs).reduce(function (collected, [key, input]) {
+            let inputValue = input.val().trim();
+
+            if (key === 'file') {
+                let data = new FormData();
+                data.append(key, input.prop('files')[0]);
+                collected[key] = data;
+            } else {
+                collected[key] = inputValue;
+            }
+
+            return collected;
+        }, {});
+
+        return request;
+    } else {
+        return null;
+    }
 }

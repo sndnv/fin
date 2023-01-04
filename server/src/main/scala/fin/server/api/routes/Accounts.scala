@@ -1,14 +1,18 @@
 package fin.server.api.routes
 
+import akka.Done
 import akka.actor.typed.scaladsl.LoggerOps
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
+import fin.server.api.directives.JsonDirectives
 import fin.server.api.requests.{CreateAccount, UpdateAccount}
 import fin.server.persistence.accounts.AccountStore
 import fin.server.security.CurrentUser
 
-class Accounts()(implicit ctx: RoutesContext) extends ApiRoutes {
+import scala.concurrent.Future
+
+class Accounts()(implicit ctx: RoutesContext) extends ApiRoutes with JsonDirectives {
   import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport._
   import fin.server.api.Formats._
 
@@ -77,6 +81,31 @@ class Accounts()(implicit ctx: RoutesContext) extends ApiRoutes {
             }
           }
         )
+      },
+      path("import") {
+        post {
+          jsonUpload[CreateAccount](implicitly) { request =>
+            extractExecutionContext { implicit ec =>
+              val accounts = request.map(_.toAccount)
+
+              onSuccess(store.all()) {
+                case existing if accounts.exists(account => existing.exists(_.externalId == account.externalId)) =>
+                  log.warnN(
+                    "User [{}] failed to import [{}] accounts; one or more accounts already exist",
+                    currentUser,
+                    accounts.length
+                  )
+                  complete(StatusCodes.Conflict)
+
+                case _ =>
+                  onSuccess(Future.sequence(accounts.map(store.create)): Future[Seq[Done]]) { _ =>
+                    log.debugN("User [{}] successfully imported [{}] accounts", currentUser, accounts.length)
+                    complete(StatusCodes.OK)
+                  }
+              }
+            }
+          }
+        }
       }
     )
 }

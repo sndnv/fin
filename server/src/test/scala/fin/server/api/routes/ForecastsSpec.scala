@@ -6,7 +6,7 @@ import akka.http.scaladsl.server.Route
 import akka.http.scaladsl.testkit.ScalatestRouteTest
 import fin.server.UnitSpec
 import fin.server.api.requests.{CreateForecast, UpdateForecast}
-import fin.server.model.{Forecast, Period, Transaction}
+import fin.server.model.{Forecast, Transaction}
 import fin.server.persistence.ServerPersistence
 import fin.server.persistence.accounts.AccountStore
 import fin.server.persistence.categories.CategoryMappingStore
@@ -70,7 +70,7 @@ class ForecastsSpec extends UnitSpec with ScalatestRouteTest {
       status should be(StatusCodes.OK)
 
       fixtures.forecastStore
-        .get(forecast = fixtures.forecastStore.all(forPeriod = Period.current).await.head.id)
+        .get(forecast = 1)
         .map { forecast => forecast.isDefined should be(true) }
     }
   }

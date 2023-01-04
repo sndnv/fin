@@ -13,7 +13,11 @@ class MockCategoryMappingStore extends CategoryMappingStore {
   private val store = new ConcurrentHashMap[Int, CategoryMapping]()
 
   override def create(categoryMapping: CategoryMapping): Future[Done] = {
-    store.put(categoryMapping.id, categoryMapping)
+    store.put(
+      if (categoryMapping.id != 0) { categoryMapping.id }
+      else { store.size() + 1 },
+      categoryMapping
+    )
     Future.successful(Done)
   }
 

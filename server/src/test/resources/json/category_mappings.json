@@ -1,0 +1,17 @@
+[
+  {
+    "condition": "starts_with",
+    "matcher": "test-matcher-1",
+    "category": "test-category-1"
+  },
+  {
+    "condition": "ends_with",
+    "matcher": "test-matcher-2",
+    "category": "test-category-2"
+  },
+  {
+    "condition": "matches",
+    "matcher": "test-matcher-3",
+    "category": "test-category-3"
+  }
+]
