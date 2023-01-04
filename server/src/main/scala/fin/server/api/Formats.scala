@@ -1,19 +1,9 @@
 package fin.server.api
 
 import akka.http.scaladsl.unmarshalling.Unmarshaller
-import fin.server.api.requests.{
-  ApplyCategoryMappings,
-  CreateAccount,
-  CreateCategoryMapping,
-  CreateForecast,
-  CreateTransaction,
-  UpdateAccount,
-  UpdateCategoryMapping,
-  UpdateForecast,
-  UpdateTransaction
-}
-import fin.server.api.responses.{CategoryMappingsApplicationResult, MessageResponse, TransactionImportResult, TransactionSummary}
-import fin.server.model.{Account, CategoryMapping, Forecast, Period, Transaction}
+import fin.server.api.requests._
+import fin.server.api.responses._
+import fin.server.model._
 
 object Formats {
   import play.api.libs.json._

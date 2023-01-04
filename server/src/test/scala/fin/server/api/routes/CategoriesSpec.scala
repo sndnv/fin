@@ -1,7 +1,7 @@
 package fin.server.api.routes
 
 import akka.http.scaladsl.marshalling.Marshal
-import akka.http.scaladsl.model.{RequestEntity, StatusCodes}
+import akka.http.scaladsl.model.{ContentTypes, Multipart, RequestEntity, StatusCodes}
 import akka.http.scaladsl.server.Route
 import akka.http.scaladsl.testkit.ScalatestRouteTest
 import fin.server.UnitSpec
@@ -17,6 +17,7 @@ import fin.server.persistence.transactions.TransactionStore
 import fin.server.security.CurrentUser
 import org.slf4j.{Logger, LoggerFactory}
 
+import java.io.File
 import java.time.{Instant, LocalDate}
 import java.util.UUID
 import scala.concurrent.Future
@@ -51,7 +52,7 @@ class CategoriesSpec extends UnitSpec with ScalatestRouteTest {
       status should be(StatusCodes.OK)
 
       fixtures.categoryMappingStore
-        .get(categoryMapping = 0)
+        .get(categoryMapping = 1)
         .map { mapping => mapping.isDefined should be(true) }
     }
   }
@@ -308,6 +309,38 @@ class CategoriesSpec extends UnitSpec with ScalatestRouteTest {
           actualTransaction3 should be(transaction3.copy(category = mapping2.category, updated = actualTransaction3.updated))
 
         case other => fail(s"Unexpected transcations found: [$other]")
+      }
+    }
+  }
+
+  they should "support importing category mappings" in {
+    val fixtures = new TestFixtures {}
+
+    val content = Multipart.FormData.fromFile(
+      name = "file",
+      contentType = ContentTypes.`application/octet-stream`,
+      file = new File("server/src/test/resources/json/category_mappings.json")
+    )
+
+    Post("/import", content) ~> fixtures.routes ~> check {
+      status should be(StatusCodes.OK)
+
+      fixtures.categoryMappingStore.all().map(_.toList.sortBy(_.category)).map {
+        case first :: second :: third :: Nil =>
+          first.condition should be(CategoryMapping.Condition.StartsWith)
+          first.matcher should be("test-matcher-1")
+          first.category should be("test-category-1")
+
+          second.condition should be(CategoryMapping.Condition.EndsWith)
+          second.matcher should be("test-matcher-2")
+          second.category should be("test-category-2")
+
+          third.condition should be(CategoryMapping.Condition.Matches)
+          third.matcher should be("test-matcher-3")
+          third.category should be("test-category-3")
+
+        case other =>
+          fail(s"Unexpected result received: [$other]")
       }
     }
   }

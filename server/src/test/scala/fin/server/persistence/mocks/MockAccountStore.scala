@@ -13,7 +13,11 @@ class MockAccountStore extends AccountStore {
   private val store = new ConcurrentHashMap[Int, Account]()
 
   override def create(account: Account): Future[Done] = {
-    store.put(account.id, account)
+    store.put(
+      if (account.id != 0) { account.id }
+      else { store.size() + 1 },
+      account
+    )
     Future.successful(Done)
   }
 

@@ -1,9 +1,11 @@
 package fin.server.api.routes
 
+import akka.Done
 import akka.actor.typed.scaladsl.LoggerOps
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
+import fin.server.api.directives.JsonDirectives
 import fin.server.api.requests.{ApplyCategoryMappings, CreateCategoryMapping, UpdateCategoryMapping}
 import fin.server.api.responses.CategoryMappingsApplicationResult
 import fin.server.imports.Defaults
@@ -14,7 +16,7 @@ import fin.server.security.CurrentUser
 import java.time.Instant
 import scala.concurrent.Future
 
-class Categories()(implicit ctx: RoutesContext) extends ApiRoutes {
+class Categories()(implicit ctx: RoutesContext) extends ApiRoutes with JsonDirectives {
   import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport._
   import fin.server.api.Formats._
 
@@ -111,6 +113,19 @@ class Categories()(implicit ctx: RoutesContext) extends ApiRoutes {
                 )
 
                 complete(result)
+              }
+            }
+          }
+        }
+      },
+      path("import") {
+        post {
+          jsonUpload[CreateCategoryMapping](implicitly) { request =>
+            extractExecutionContext { implicit ec =>
+              val categoryMappings = request.map(_.toCategoryMapping)
+              onSuccess(Future.sequence(categoryMappings.map(store.create)): Future[Seq[Done]]) { _ =>
+                log.debugN("User [{}] successfully imported [{}] category mappings", currentUser, categoryMappings.length)
+                complete(StatusCodes.OK)
               }
             }
           }
