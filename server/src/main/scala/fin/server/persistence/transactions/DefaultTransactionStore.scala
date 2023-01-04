@@ -114,7 +114,7 @@ class DefaultTransactionStore(
 
     database.run(
       store
-        .filter(e => e.date <= maxDate)
+        .filter(e => e.removed.isEmpty && e.date <= maxDate)
         .result
     )
   }
