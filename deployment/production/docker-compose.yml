@@ -1,0 +1,215 @@
+version: '3.4'
+
+services:
+  db-identity:
+    image: postgres:14.2-alpine # replace with actual tag/version
+    restart: always
+    env_file:
+      - ./secrets/db-identity.env
+    environment:
+      PGHOST: "localhost"
+      PGPORT: "52000"
+      PGDATA: "/var/lib/postgresql/data"
+      POSTGRES_DB: "fin_identity"
+    volumes:
+      - ./local/postgres/identity:/var/lib/postgresql/data
+
+  db-server:
+    image: postgres:14.2-alpine # replace with actual tag/version
+    restart: always
+    env_file:
+      - ./secrets/db-server.env
+    environment:
+      PGHOST: "localhost"
+      PGPORT: "52001"
+      PGDATA: "/var/lib/postgresql/data"
+      POSTGRES_DB: "fin_server"
+    volumes:
+      - ./local/postgres/server:/var/lib/postgresql/data
+
+  db-identity-exporter:
+    image: prometheuscommunity/postgres-exporter
+    depends_on:
+      - db-identity
+    restart: always
+    env_file:
+      - ./secrets/db-identity-exporter.env
+    environment:
+      DATA_SOURCE_URI: "db-identity:52000/fin_identity?sslmode=disable"
+      PG_EXPORTER_WEB_LISTEN_ADDRESS: "0.0.0.0:52002"
+      PG_EXPORTER_AUTO_DISCOVER_DATABASES: "true"
+
+  db-server-exporter:
+    image: prometheuscommunity/postgres-exporter
+    depends_on:
+      - db-server
+    restart: always
+    env_file:
+      - ./secrets/db-server-exporter.env
+    environment:
+      DATA_SOURCE_URI: "db-server:52001/fin_server?sslmode=disable"
+      PG_EXPORTER_WEB_LISTEN_ADDRESS: "0.0.0.0:52003"
+      PG_EXPORTER_AUTO_DISCOVER_DATABASES: "true"
+
+  identity:
+    image: stasis-identity:0.0.1-SNAPSHOT # replace with actual tag/version
+    depends_on:
+      - db-identity
+    restart: always
+    ports:
+      - '52100:52100'
+    env_file:
+      - ./secrets/identity.env
+      - ./secrets/identity.bootstrap.env
+    environment:
+      STASIS_IDENTITY_LOGLEVEL: "INFO"
+      STASIS_IDENTITY_REALM: "fin.internal"
+      STASIS_IDENTITY_SERVICE_API_INTERFACE: "0.0.0.0"
+      STASIS_IDENTITY_SERVICE_API_PORT: "52100"
+      STASIS_IDENTITY_SERVICE_INTERNAL_QUERY_TIMEOUT: "3 seconds"
+      STASIS_IDENTITY_SERVICE_API_CONTEXT_PROTOCOL: "TLS"
+      STASIS_IDENTITY_SERVICE_API_CONTEXT_KEYSTORE_PATH: "/opt/docker/secrets/identity.p12"
+      STASIS_IDENTITY_SERVICE_API_CONTEXT_KEYSTORE_TYPE: "PKCS12"
+      STASIS_IDENTITY_SERVICE_API_CONTEXT_KEYSTORE_PASSWORD: ""
+      STASIS_IDENTITY_SERVICE_TELEMETRY_METRICS_INTERFACE: "0.0.0.0"
+      STASIS_IDENTITY_SERVICE_TELEMETRY_METRICS_PORT: "52101"
+      STASIS_IDENTITY_CODES_AUTHORIZATION_SIZE: "32"
+      STASIS_IDENTITY_CODES_AUTHORIZATION_EXPIRATION: "1 minute"
+      STASIS_IDENTITY_TOKENS_ACCESS_ISSUER: "identity.fin.internal"
+      STASIS_IDENTITY_TOKENS_ACCESS_EXPIRATION: "90 minutes"
+      STASIS_IDENTITY_TOKENS_ACCESS_SIGNATURE_KEY_TYPE: "stored"
+      STASIS_IDENTITY_TOKENS_ACCESS_SIGNATURE_KEY_STORED_PATH: "/opt/docker/secrets/identity-signature-key.jwk.json"
+      STASIS_IDENTITY_TOKENS_REFRESH_ALLOWED: "true"
+      STASIS_IDENTITY_TOKENS_REFRESH_SIZE: "64"
+      STASIS_IDENTITY_TOKENS_REFRESH_EXPIRATION: "7 days"
+      STASIS_IDENTITY_SECRETS_CLIENT_ALGORITHM: "PBKDF2WithHmacSHA512"
+      STASIS_IDENTITY_SECRETS_CLIENT_ITERATIONS: "150000"
+      STASIS_IDENTITY_SECRETS_CLIENT_DERIVED_KEY_SIZE: "64"
+      STASIS_IDENTITY_SECRETS_CLIENT_SALT_SIZE: "64"
+      STASIS_IDENTITY_SECRETS_CLIENT_AUTHENTICATION_DELAY: "500ms"
+      STASIS_IDENTITY_SECRETS_RESOURCE_OWNER_ALGORITHM: "PBKDF2WithHmacSHA512"
+      STASIS_IDENTITY_SECRETS_RESOURCE_OWNER_ITERATIONS: "150000"
+      STASIS_IDENTITY_SECRETS_RESOURCE_OWNER_DERIVED_KEY_SIZE: "64"
+      STASIS_IDENTITY_SECRETS_RESOURCE_OWNER_SALT_SIZE: "64"
+      STASIS_IDENTITY_SECRETS_RESOURCE_OWNER_AUTHENTICATION_DELAY: "500ms"
+      STASIS_IDENTITY_AUTHENTICATORS_OWNER_IDENTITY_CLAIM: "sub"
+      STASIS_IDENTITY_AUTHENTICATORS_OWNER_TOLERANCE: "30 seconds"
+      STASIS_IDENTITY_PERSISTENCE_DATABASE_PROFILE: "PostgresProfile"
+      STASIS_IDENTITY_PERSISTENCE_DATABASE_URL: "jdbc:postgresql://db-identity:52000/fin_identity"
+      STASIS_IDENTITY_PERSISTENCE_DATABASE_DRIVER: "org.postgresql.Driver"
+      STASIS_IDENTITY_PERSISTENCE_DATABASE_KEEP_ALIVE_CONNECTION: "true"
+      STASIS_IDENTITY_BOOTSTRAP_ENABLED: "false"
+      STASIS_IDENTITY_BOOTSTRAP_CONFIG: "/opt/docker/config/identity-bootstrap.conf"
+      AKKA_HTTP_SERVER_HEADER: ""
+      AKKA_HTTP_CORS_ALLOWED_ORIGINS: "" # replace with actual allowed origins
+    volumes:
+      - ./bootstrap/identity.conf:/opt/docker/config/identity-bootstrap.conf
+      - ./secrets/identity.p12:/opt/docker/secrets/identity.p12
+      - ./secrets/identity-signature-key.jwk.json:/opt/docker/secrets/identity-signature-key.jwk.json
+
+  identity-ui:
+    image: stasis-identity-ui:0.0.1-SNAPSHOT # replace with actual tag/version
+    restart: always
+    ports:
+      - '52200:52200'
+    env_file:
+      - ./secrets/identity-ui.env
+    environment:
+      IDENTITY_UI_IDENTITY_SERVER: "https://identity.fin.internal:52100"
+      IDENTITY_UI_TOKEN_ENDPOINT: "/oauth/token"
+      IDENTITY_UI_REDIRECT_URI: "https://identity.fin.internal:52200/login/callback"
+      IDENTITY_UI_SCOPES: "urn:stasis:identity:audience:manage-identity"
+      IDENTITY_UI_PASSWORD_DERIVATION_ENABLED: "false"
+      IDENTITY_UI_PASSWORD_DERIVATION_SECRET_SIZE: "24"
+      IDENTITY_UI_PASSWORD_DERIVATION_ITERATIONS: "150000"
+      NGINX_SERVER_NAME: "" # replace with actual server name
+      NGINX_SERVER_PORT: "52200 ssl"
+      NGINX_SERVER_SSL_CERTIFICATE: "/opt/docker/secrets/identity.cert.pem"
+      NGINX_SERVER_SSL_CERTIFICATE_KEY: "/opt/docker/secrets/identity.key.pem"
+      NGINX_SERVER_SSL_PROTOCOLS: "TLSv1 TLSv1.1 TLSv1.2"
+      NGINX_SERVER_SSL_CIPHERS: "HIGH:!aNULL:!MD5"
+      NGINX_CORS_ALLOWED_ORIGIN: "" # replace with actual allowed origins
+    volumes:
+      - ./secrets/identity.cert.pem:/opt/docker/secrets/identity.cert.pem
+      - ./secrets/identity.key.pem:/opt/docker/secrets/identity.key.pem
+
+  server:
+    image: fin-server:0.0.1-SNAPSHOT # replace with actual tag/version
+    restart: always
+    depends_on:
+      - db-server
+      - db-identity
+      - identity
+    ports:
+      - '52300:52300'
+    env_file:
+      - ./secrets/server.env
+    environment:
+      FIN_SERVER_LOGLEVEL: "INFO"
+      FIN_SERVER_SERVICE_API_INTERFACE: "0.0.0.0"
+      FIN_SERVER_SERVICE_API_PORT: "52300"
+      FIN_SERVER_SERVICE_API_CONTEXT_ENABLED: "true"
+      FIN_SERVER_SERVICE_API_CONTEXT_PROTOCOL: "TLS"
+      FIN_SERVER_SERVICE_API_CONTEXT_KEYSTORE_PATH: "/opt/docker/secrets/server.p12"
+      FIN_SERVER_SERVICE_API_CONTEXT_KEYSTORE_TYPE: "PKCS12"
+      FIN_SERVER_SERVICE_API_CONTEXT_KEYSTORE_PASSWORD: ""
+      FIN_SERVER_SERVICE_TELEMETRY_METRICS_INTERFACE: "0.0.0.0"
+      FIN_SERVER_SERVICE_TELEMETRY_METRICS_PORT: "52301"
+      FIN_SERVER_SERVICE_MODE: "production"
+      FIN_SERVER_CLIENTS_AUTHENTICATION_CONTEXT_ENABLED: "true"
+      FIN_SERVER_CLIENTS_AUTHENTICATION_CONTEXT_PROTOCOL: "TLS"
+      FIN_SERVER_CLIENTS_AUTHENTICATION_CONTEXT_TRUSTSTORE_PATH: "/opt/docker/secrets/identity.p12"
+      FIN_SERVER_CLIENTS_AUTHENTICATION_CONTEXT_TRUSTSTORE_TYPE: "PKCS12"
+      FIN_SERVER_CLIENTS_AUTHENTICATION_CONTEXT_TRUSTSTORE_PASSWORD: ""
+      FIN_SERVER_AUTHENTICATORS_USERS_ISSUER: "identity.fin.internal"
+      FIN_SERVER_AUTHENTICATORS_USERS_AUDIENCE: "fin-server"
+      FIN_SERVER_AUTHENTICATORS_USERS_IDENTITY_CLAIM: "sub"
+      FIN_SERVER_AUTHENTICATORS_USERS_JWKS_ENDPOINT: "https://identity.fin.internal:52100/jwks/jwks.json"
+      FIN_SERVER_AUTHENTICATORS_USERS_REFRESH_INTERVAL: "90 minutes"
+      FIN_SERVER_AUTHENTICATORS_USERS_REFRESH_RETRY_INTERVAL: "3 seconds"
+      FIN_SERVER_AUTHENTICATORS_USERS_TOLERANCE: "30 seconds"
+      FIN_SERVER_UI_AUTHORIZATION_ENDPOINT: "https://identity.fin.internal:52200/login/authorize"
+      FIN_SERVER_UI_TOKEN_ENDPOINT: "https://identity.fin.internal:52100/oauth/token"
+      FIN_SERVER_UI_AUTHENTICATION_REDIRECT_UI: "https://server.fin.internal:52300/manage/login/callback"
+      FIN_SERVER_UI_AUTHENTICATION_SCOPE: "urn:stasis:identity:audience:fin-server"
+      FIN_SERVER_UI_AUTHENTICATION_STATE_SIZE: "64"
+      FIN_SERVER_UI_AUTHENTICATION_CODE_VERIFIER_SIZE: "64"
+      FIN_SERVER_UI_COOKIES_AUTHENTICATION_TOKEN: "fin-server-ui-authentication-token"
+      FIN_SERVER_UI_COOKIES_CODE_VERIFIER: "fin-server-ui-code-verifier"
+      FIN_SERVER_UI_COOKIES_STATE: "fin-server-ui-state"
+      FIN_SERVER_UI_COOKIES_SECURE: "true"
+      FIN_SERVER_UI_COOKIES_EXPIRATION_TOLERANCE: "15"
+      FIN_SERVER_PERSISTENCE_DATABASE_PROFILE: "PostgresProfile"
+      FIN_SERVER_PERSISTENCE_DATABASE_URL: "jdbc:postgresql://db-server:52001/fin_server"
+      FIN_SERVER_PERSISTENCE_DATABASE_DRIVER: "org.postgresql.Driver"
+      FIN_SERVER_PERSISTENCE_DATABASE_KEEP_ALIVE_CONNECTION: "true"
+      FIN_SERVER_PERSISTENCE_DATABASE_INIT: "false"
+      AKKA_HTTP_SERVER_HEADER: ""
+      AKKA_HTTP_CORS_ALLOWED_ORIGINS: "" # replace with actual allowed origins
+    volumes:
+      - ./secrets/server.p12:/opt/docker/secrets/server.p12
+      - ./secrets/identity.p12:/opt/docker/secrets/identity.p12
+
+  prometheus:
+    image: prom/prometheus
+    restart: always
+    ports:
+      - "52400:19090"
+    volumes:
+      - ./telemetry/prometheus:/etc/prometheus
+      - prometheus_data:/prometheus
+
+  grafana:
+    image: grafana/grafana
+    restart: always
+    ports:
+      - "52500:13000"
+    volumes:
+      - ./telemetry/grafana:/etc/grafana/provisioning
+      - ../grafana/dashboards/identity:/etc/grafana/provisioning/dashboards/identity
+      - ../grafana/dashboards/server:/etc/grafana/provisioning/dashboards/server
+      - ../grafana/dashboards/jvm:/etc/grafana/provisioning/dashboards/jvm
+      - ../grafana/dashboards/postgresql:/etc/grafana/provisioning/dashboards/postgresql
+
+volumes:
+  prometheus_data:

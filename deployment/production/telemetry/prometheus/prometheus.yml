@@ -1,0 +1,16 @@
+global:
+  scrape_interval:     15s
+
+scrape_configs:
+  - job_name: 'db-identity'
+    static_configs:
+      - targets: ['db-identity-exporter:52002']
+  - job_name: 'db-server'
+    static_configs:
+      - targets: ['db-server-exporter:52003']
+  - job_name: 'identity'
+    static_configs:
+      - targets: ['identity:52101']
+  - job_name: 'server'
+    static_configs:
+      - targets: ['server:52301']
