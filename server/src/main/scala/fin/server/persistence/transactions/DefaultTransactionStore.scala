@@ -57,9 +57,6 @@ class DefaultTransactionStore(
 
   private val store = TableQuery[SlickTransactionStore]
 
-  private val extractYear = SimpleFunction.unary[LocalDate, Int]("year")
-  private val extractMonth = SimpleFunction.unary[LocalDate, Int]("month")
-
   override def init(): Future[Done] =
     database.run(store.schema.create).map(_ => Done)
 
@@ -91,23 +88,25 @@ class DefaultTransactionStore(
   override def get(transaction: Transaction.Id): Future[Option[Transaction]] =
     database.run(store.filter(_.id === transaction).map(_.value).result.headOption)
 
-  override def available(forPeriod: Period): Future[Seq[Transaction]] =
+  override def available(forPeriod: Period): Future[Seq[Transaction]] = {
+    val start = forPeriod.atFirstDayOfMonth
+    val end = forPeriod.atLastDayOfMonth
     database.run(
       store
-        .filter(e =>
-          e.removed.isEmpty
-            && extractYear(e.date) === forPeriod.year
-            && extractMonth(e.date) === forPeriod.month.getValue
-        )
+        .filter(e => e.removed.isEmpty && e.date >= start && e.date <= end)
         .result
     )
+  }
 
-  override def all(forPeriod: Period): Future[Seq[Transaction]] =
+  override def all(forPeriod: Period): Future[Seq[Transaction]] = {
+    val start = forPeriod.atFirstDayOfMonth
+    val end = forPeriod.atLastDayOfMonth
     database.run(
       store
-        .filter(e => extractYear(e.date) === forPeriod.year && extractMonth(e.date) === forPeriod.month.getValue)
+        .filter(e => e.date >= start && e.date <= end)
         .result
     )
+  }
 
   override def to(period: Period): Future[Seq[Transaction]] = {
     val maxDate = period.atLastDayOfMonth

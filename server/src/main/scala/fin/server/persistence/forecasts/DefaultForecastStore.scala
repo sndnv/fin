@@ -55,9 +55,6 @@ class DefaultForecastStore(
 
   private val store = TableQuery[SlickForecastStore]
 
-  private val extractYear = SimpleFunction.unary[LocalDate, Int]("year")
-  private val extractMonth = SimpleFunction.unary[LocalDate, Int]("month")
-
   override def init(): Future[Done] =
     database.run(store.schema.create).map(_ => Done)
 
@@ -76,25 +73,31 @@ class DefaultForecastStore(
   override def get(forecast: Forecast.Id): Future[Option[Forecast]] =
     database.run(store.filter(_.id === forecast).map(_.value).result.headOption)
 
-  override def available(forPeriod: Period): Future[Seq[Forecast]] =
+  override def available(forPeriod: Period): Future[Seq[Forecast]] = {
+    val start = forPeriod.atFirstDayOfMonth
+    val end = forPeriod.atLastDayOfMonth
     database.run(
       store.filter { e =>
         val dateMatchesOrIsEmpty = e.date
-          .map(date => extractYear(date) === forPeriod.year && extractMonth(date) === forPeriod.month.getValue)
+          .map(date => date >= start && date <= end)
           .getOrElse(true)
 
         e.removed.isEmpty && dateMatchesOrIsEmpty
       }.result
     )
+  }
 
-  override def all(forPeriod: Period): Future[Seq[Forecast]] =
+  override def all(forPeriod: Period): Future[Seq[Forecast]] = {
+    val start = forPeriod.atFirstDayOfMonth
+    val end = forPeriod.atLastDayOfMonth
     database.run(
       store.filter { e =>
         e.date
-          .map(date => extractYear(date) === forPeriod.year && extractMonth(date) === forPeriod.month.getValue)
+          .map(date => date >= start && date <= end)
           .getOrElse(true)
       }.result
     )
+  }
 
   override def categories(): Future[Seq[String]] =
     database.run(
