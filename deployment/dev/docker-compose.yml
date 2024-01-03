@@ -2,7 +2,7 @@ version: '3'
 
 services:
   identity:
-    image: stasis-identity:dev-latest
+    image: ghcr.io/sndnv/stasis/stasis-identity:1.0.0
     ports:
       - '10000:10000'
       - '10001:10001'
@@ -25,13 +25,13 @@ services:
       - FIN_SERVER_UI_DEV_REDIRECT_URI=https://localhost:20000/manage/login/callback
       - FIN_SERVER_UI_DEV_CLIENT_SECRET=test-secret
       - STASIS_IDENTITY_UI_DEV_MASTER_PASSWORD=passw0rd
-      - AKKA_HTTP_CORS_ALLOWED_ORIGINS=*
+      - PEKKO_HTTP_CORS_ALLOWED_ORIGINS=*
     volumes:
       - ./config/identity-bootstrap.conf:/opt/docker/config/identity-bootstrap.conf
       - ./secrets/identity.p12:/opt/docker/certs/identity.p12
 
   identity-ui:
-    image: stasis-identity-ui:dev-latest
+    image: ghcr.io/sndnv/stasis/stasis-identity-ui:1.0.0
     ports:
       - '8080:8080'
     environment:

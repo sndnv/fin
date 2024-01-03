@@ -65,6 +65,18 @@ class ManageSpec extends UnitSpec with ScalatestRouteTest {
     }
   }
 
+  they should "provide a reports page" in {
+    val fixtures = new TestFixtures {}
+
+    Get("/reports") ~> fixtures.routes ~> check {
+      status should be(StatusCodes.OK)
+      val response = responseAs[String]
+
+      response should include("<!doctype html>")
+      response should include("<h4>Reports</h4>")
+    }
+  }
+
   they should "provide a categories page" in {
     val fixtures = new TestFixtures {}
 

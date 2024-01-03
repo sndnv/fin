@@ -3,13 +3,18 @@ package fin.server.api.routes
 import akka.actor.typed.scaladsl.LoggerOps
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
-import fin.server.api.responses.TransactionSummary
+import akka.http.scaladsl.unmarshalling.Unmarshaller
+import fin.server.api.responses.TransactionBreakdown.BreakdownType
+import fin.server.api.responses.{TransactionBreakdown, TransactionSummary}
 import fin.server.model.Period
 import fin.server.security.CurrentUser
+
+import java.time.LocalDate
 
 class Reports()(implicit ctx: RoutesContext) extends ApiRoutes {
   import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport._
   import fin.server.api.Formats._
+  import Reports._
 
   def routes(implicit currentUser: CurrentUser): Route =
     concat(
@@ -33,8 +38,31 @@ class Reports()(implicit ctx: RoutesContext) extends ApiRoutes {
           onSuccess(ctx.persistence.transactions.to(period = period)) { transactions =>
             val summary = transactions.foldLeft(TransactionSummary.empty)(_ withTransaction _)
 
-            log.debugN("User [{}] retrieved summary for period [{}]", currentUser, period)
+            log.debugN("User [{}] retrieved transaction summary for period [{}]", currentUser, period)
             discardEntity & complete(summary)
+          }
+        }
+      },
+      path("breakdown") {
+        parameters(
+          "type".as[BreakdownType],
+          "start".as[LocalDate],
+          "end".as[LocalDate],
+          "account".as[Int]
+        ) { case (breakdownType, start, end, account) =>
+          onSuccess(ctx.persistence.transactions.between(start = start, end = end, account = account)) { transactions =>
+            val breakdown = TransactionBreakdown(breakdownType, transactions)
+
+            log.debugN(
+              "User [{}] retrieved transaction breakdown for account [{}] with [type={},start={},end={}]",
+              currentUser,
+              account,
+              breakdownType,
+              start,
+              end
+            )
+
+            discardEntity & complete(breakdown)
           }
         }
       }
@@ -43,4 +71,8 @@ class Reports()(implicit ctx: RoutesContext) extends ApiRoutes {
 
 object Reports {
   def apply()(implicit ctx: RoutesContext): Reports = new Reports()
+
+  implicit val stringToBreakdownType: Unmarshaller[String, BreakdownType] = Unmarshaller.strict(BreakdownType.apply)
+
+  implicit val stringToLocalDate: Unmarshaller[String, LocalDate] = Unmarshaller.strict(LocalDate.parse)
 }

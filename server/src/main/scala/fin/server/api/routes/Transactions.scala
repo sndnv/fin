@@ -180,7 +180,7 @@ class Transactions()(implicit ctx: RoutesContext) extends ApiRoutes with XmlDire
                   discardEntity & complete(transactions)
                 }
               case _ =>
-                log.debugN("USer [{}] provided an invalid or empty query parameter: [{}]", currentUser, query)
+                log.debugN("User [{}] provided an invalid or empty query parameter: [{}]", currentUser, query)
                 discardEntity & complete(StatusCodes.BadRequest)
             }
           }
