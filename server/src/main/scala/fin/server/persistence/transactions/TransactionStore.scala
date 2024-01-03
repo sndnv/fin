@@ -1,8 +1,9 @@
 package fin.server.persistence.transactions
 
 import akka.Done
-import fin.server.model.{Period, Transaction}
+import fin.server.model.{Account, Period, Transaction}
 
+import java.time.LocalDate
 import scala.concurrent.Future
 
 trait TransactionStore {
@@ -16,6 +17,7 @@ trait TransactionStore {
   def to(period: Period): Future[Seq[Transaction]]
   def search(query: String): Future[Seq[Transaction]]
   def categories(): Future[Seq[String]]
+  def between(start: LocalDate, end: LocalDate, account: Account.Id): Future[Seq[Transaction]]
 
   def init(): Future[Done]
   def drop(): Future[Done]

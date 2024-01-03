@@ -2,7 +2,7 @@ package fin.server.persistence.transactions
 
 import akka.Done
 import akka.actor.typed.{ActorSystem, DispatcherSelector}
-import fin.server.model.{Period, Transaction}
+import fin.server.model.{Account, Period, Transaction}
 import slick.ast.BaseTypedType
 import slick.jdbc.JdbcProfile
 import slick.lifted.ProvenShape
@@ -131,6 +131,13 @@ class DefaultTransactionStore(
         .filter(_.removed.isEmpty)
         .distinctOn(_.category)
         .map(_.category)
+        .result
+    )
+
+  override def between(start: LocalDate, end: LocalDate, account: Account.Id): Future[Seq[Transaction]] =
+    database.run(
+      store
+        .filter(e => e.from === account && e.removed.isEmpty && e.date >= start && e.date <= end)
         .result
     )
 }

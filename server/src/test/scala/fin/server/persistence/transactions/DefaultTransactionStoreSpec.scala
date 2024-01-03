@@ -589,6 +589,71 @@ class DefaultTransactionStoreSpec extends UnitSpec with BeforeAndAfterAll {
     }
   }
 
+  it should "support retrieving transactions between dates for an account" in {
+    val store = new DefaultTransactionStore(
+      tableName = "DefaultTransactionStoreSpec",
+      profile = H2Profile,
+      database = h2db
+    )
+
+    val now = Instant.now()
+
+    val transaction1 = Transaction(
+      id = UUID.randomUUID(),
+      externalId = "test-id-1",
+      `type` = Transaction.Type.Debit,
+      from = 1,
+      to = Some(2),
+      amount = 3,
+      currency = "EUR",
+      date = LocalDate.now(),
+      category = "test-category-1",
+      notes = Some("abcdefgh"),
+      created = now,
+      updated = now,
+      removed = None
+    )
+
+    val transaction2 =
+      transaction1.copy(id = UUID.randomUUID(), date = LocalDate.now().plusDays(1), from = 2, externalId = "test-id-2")
+
+    val transaction3 =
+      transaction1.copy(id = UUID.randomUUID(), date = LocalDate.now().plusDays(2), from = 3, externalId = "test-id-3")
+
+    val transaction4 =
+      transaction1.copy(id = UUID.randomUUID(), date = LocalDate.now().minusDays(1), from = 3, externalId = "test-id-4")
+
+    val transaction5 =
+      transaction1.copy(id = UUID.randomUUID(), date = LocalDate.now().minusDays(2), externalId = "test-id-5")
+
+    val transaction6 =
+      transaction1.copy(id = UUID.randomUUID(), date = LocalDate.now(), from = 3, externalId = "test-id-6")
+
+    val transaction7 =
+      transaction1.copy(id = UUID.randomUUID(), date = LocalDate.now().minusDays(2), from = 3, externalId = "test-id-7")
+
+    for {
+      _ <- store.init()
+      _ <- store.create(transaction1)
+      _ <- store.create(transaction2)
+      _ <- store.create(transaction3)
+      _ <- store.create(transaction4)
+      _ <- store.create(transaction5)
+      _ <- store.create(transaction6)
+      _ <- store.create(transaction7)
+      allForAccount1 <- store.between(start = LocalDate.now().minusDays(2), end = LocalDate.now().plusDays(2), account = 1)
+      allForAccount2 <- store.between(start = LocalDate.now().minusDays(2), end = LocalDate.now().plusDays(2), account = 2)
+      allForAccount3 <- store.between(start = LocalDate.now().minusDays(2), end = LocalDate.now().plusDays(2), account = 3)
+      yesterdayForAccount3 <- store.between(start = LocalDate.now().minusDays(1), end = LocalDate.now().minusDays(1), account = 3)
+      _ <- store.drop()
+    } yield {
+      allForAccount1.map(_.externalId) should be(Seq("test-id-1", "test-id-5"))
+      allForAccount2.map(_.externalId) should be(Seq("test-id-2"))
+      allForAccount3.map(_.externalId) should be(Seq("test-id-3", "test-id-4", "test-id-6", "test-id-7"))
+      yesterdayForAccount3.map(_.externalId) should be(Seq("test-id-4"))
+    }
+  }
+
   private implicit val typedSystem: ActorSystem[Nothing] = ActorSystem(
     guardianBehavior = Behaviors.ignore,
     name = "DefaultTransactionStoreSpec"

@@ -54,6 +54,19 @@ object Formats {
   implicit val transactionSummaryFormat: Format[TransactionSummary] =
     Json.format[TransactionSummary]
 
+  implicit val transactionBreakdownIncomeFormat: Format[TransactionBreakdown.Income] =
+    Json.format[TransactionBreakdown.Income]
+  implicit val transactionBreakdownExpensesFormat: Format[TransactionBreakdown.Expenses] =
+    Json.format[TransactionBreakdown.Expenses]
+  implicit val transactionBreakdownForCategoryFormat: Format[TransactionBreakdown.ForCategory] =
+    Json.format[TransactionBreakdown.ForCategory]
+  implicit val transactionBreakdownForPeriodFormat: Format[TransactionBreakdown.ForPeriod] =
+    Json.format[TransactionBreakdown.ForPeriod]
+  implicit val transactionBreakdownForCurrencyFormat: Format[TransactionBreakdown.ForCurrency] =
+    Json.format[TransactionBreakdown.ForCurrency]
+  implicit val transactionBreakdownFormat: Format[TransactionBreakdown] =
+    Json.format[TransactionBreakdown]
+
   implicit val categoryMappingConditionFormat: Format[CategoryMapping.Condition] = Format(
     fjs = _.validate[String].map(CategoryMapping.Condition.apply),
     tjs = condition => Json.toJson(condition.toString)

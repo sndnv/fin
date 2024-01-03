@@ -4,7 +4,7 @@ import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.Route
 import akka.http.scaladsl.testkit.ScalatestRouteTest
 import fin.server.UnitSpec
-import fin.server.api.responses.TransactionSummary
+import fin.server.api.responses.{TransactionBreakdown, TransactionSummary}
 import fin.server.model.{Forecast, Transaction}
 import fin.server.persistence.ServerPersistence
 import fin.server.persistence.accounts.AccountStore
@@ -52,7 +52,6 @@ class ReportsSpec extends UnitSpec with ScalatestRouteTest {
   }
 
   they should "provide transaction summaries (previous period)" in {
-
     val now = Instant.now()
 
     val transaction1 = Transaction(
@@ -168,6 +167,40 @@ class ReportsSpec extends UnitSpec with ScalatestRouteTest {
     }
   }
 
+  they should "provide transaction breakdowns" in {
+    val fixtures = new TestFixtures {}
+    Future.sequence(transactions.map(fixtures.transactionStore.create)).await
+
+    val year = LocalDate.now().getYear
+
+    Get(s"/breakdown?type=by-year&account=1&start=$year-01-01&end=$year-12-31") ~> fixtures.routes ~> check {
+      status should be(StatusCodes.OK)
+      responseAs[TransactionBreakdown] should be(
+        TransactionBreakdown(
+          currencies = Map(
+            "EUR" -> TransactionBreakdown.ForCurrency(
+              periods = Map(
+                year.toString -> TransactionBreakdown.ForPeriod(
+                  income = TransactionBreakdown.Income(value = 123.4, transactions = 1),
+                  expenses = TransactionBreakdown.Expenses(value = 246.8, transactions = 2),
+                  categories = Map(
+                    "test-category-1" -> TransactionBreakdown.ForCategory(
+                      income = TransactionBreakdown.Income(value = 0, transactions = 0),
+                      expenses = TransactionBreakdown.Expenses(value = 123.4, transactions = 1)
+                    ),
+                    "test-category-2" -> TransactionBreakdown.ForCategory(
+                      income = TransactionBreakdown.Income(value = 123.4, transactions = 1),
+                      expenses = TransactionBreakdown.Expenses(value = 123.4, transactions = 1)
+                    )
+                  )
+                )
+              )
+            )
+          )
+        )
+      )
+    }
+  }
   private implicit val log: Logger = LoggerFactory.getLogger(this.getClass.getName)
 
   private trait TestFixtures {

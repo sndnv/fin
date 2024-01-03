@@ -1,0 +1,35 @@
+@import components.html._
+
+@page(currentPage = "reports") {
+<div class="bg-light p-3 rounded">
+    <h4>Reports</h4>
+    <div class="mx-auto" id="report-controls"></div>
+    <div class="row p-2" id="no-data" hidden>
+        <div role="alert" class="alert alert-secondary text-center">
+            No data available
+        </div>
+    </div>
+    <div id="graphs" hidden>
+        <div class="row">
+            <div class="col-4 p-2">
+                <div class="border rounded bg-body" id="income-total"></div>
+            </div>
+            <div class="col-4 p-2">
+                <div class="border rounded bg-body" id="expenses-total"></div>
+            </div>
+            <div class="col-4 p-2">
+                <div class="border rounded bg-body" id="remaining-balance-total"></div>
+            </div>
+        </div>
+        <div class="row p-2">
+            <div class="border rounded bg-body" id="income-expenses-per-period"></div>
+        </div>
+        <div class="row p-2">
+            <div class="border rounded bg-body" id="expenses-per-category"></div>
+        </div>
+        <div class="row p-2">
+            <div class="border rounded bg-body" id="transactions-per-period"></div>
+        </div>
+    </div>
+</div>
+}

@@ -1,10 +1,10 @@
 package fin.server.persistence.mocks
 
 import akka.Done
-import fin.server.model.{Period, Transaction}
+import fin.server.model.{Account, Period, Transaction}
 import fin.server.persistence.transactions.TransactionStore
 
-import java.time.Instant
+import java.time.{Instant, LocalDate}
 import java.time.temporal.ChronoField
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
@@ -90,6 +90,17 @@ class MockTransactionStore extends TransactionStore {
 
   override def categories(): Future[Seq[String]] =
     Future.successful(store.values().asScala.toSeq.map(_.category).distinct)
+
+  override def between(start: LocalDate, end: LocalDate, account: Account.Id): Future[Seq[Transaction]] =
+    Future.successful(
+      store
+        .values()
+        .asScala
+        .toSeq
+        .filter(t =>
+          t.from == account && (t.date.isEqual(start) || t.date.isAfter(start)) && (t.date.isEqual(end) || t.date.isBefore(end))
+        )
+    )
 
   override def init(): Future[Done] = Future.successful(Done)
 
