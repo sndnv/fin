@@ -1,12 +1,12 @@
 package fin.server.api.handlers
 
-import akka.http.scaladsl.model.StatusCodes
-import akka.http.scaladsl.server.Directives._
-import akka.http.scaladsl.server.{ExceptionHandler, Route}
-import akka.http.scaladsl.testkit.ScalatestRouteTest
 import fin.server.UnitSpec
 import fin.server.api.responses.MessageResponse
 import fin.server.security.exceptions.AuthorizationFailure
+import org.apache.pekko.http.scaladsl.model.StatusCodes
+import org.apache.pekko.http.scaladsl.server.Directives._
+import org.apache.pekko.http.scaladsl.server.{ExceptionHandler, Route}
+import org.apache.pekko.http.scaladsl.testkit.ScalatestRouteTest
 import org.slf4j.LoggerFactory
 
 class SanitizingSpec extends UnitSpec with ScalatestRouteTest {
@@ -25,7 +25,7 @@ class SanitizingSpec extends UnitSpec with ScalatestRouteTest {
   }
 
   it should "handle generic failures reported by routes" in {
-    import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport._
+    import com.github.pjfanning.pekkohttpplayjson.PlayJsonSupport._
     import fin.server.api.Formats._
 
     implicit val handler: ExceptionHandler = Sanitizing.create(log)

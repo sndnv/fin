@@ -1,10 +1,10 @@
 package fin.server.api
 
-import akka.http.scaladsl.model.{HttpRequest, HttpResponse}
 import fin.server.telemetry.metrics.MeterExtensions.ExtendedMeter
 import fin.server.telemetry.metrics.MetricsProvider
 import io.opentelemetry.api.common.AttributeKey
 import io.opentelemetry.api.metrics.Meter
+import org.apache.pekko.http.scaladsl.model.{HttpRequest, HttpResponse}
 
 object Metrics {
   def noop(): Set[MetricsProvider] = Set(

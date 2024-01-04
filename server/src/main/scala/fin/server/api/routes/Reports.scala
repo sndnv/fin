@@ -1,20 +1,20 @@
 package fin.server.api.routes
 
-import akka.actor.typed.scaladsl.LoggerOps
-import akka.http.scaladsl.server.Directives._
-import akka.http.scaladsl.server.Route
-import akka.http.scaladsl.unmarshalling.Unmarshaller
 import fin.server.api.responses.TransactionBreakdown.BreakdownType
 import fin.server.api.responses.{TransactionBreakdown, TransactionSummary}
 import fin.server.model.Period
 import fin.server.security.CurrentUser
+import org.apache.pekko.actor.typed.scaladsl.LoggerOps
+import org.apache.pekko.http.scaladsl.server.Directives._
+import org.apache.pekko.http.scaladsl.server.Route
+import org.apache.pekko.http.scaladsl.unmarshalling.Unmarshaller
 
 import java.time.LocalDate
 
 class Reports()(implicit ctx: RoutesContext) extends ApiRoutes {
-  import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport._
-  import fin.server.api.Formats._
   import Reports._
+  import com.github.pjfanning.pekkohttpplayjson.PlayJsonSupport._
+  import fin.server.api.Formats._
 
   def routes(implicit currentUser: CurrentUser): Route =
     concat(

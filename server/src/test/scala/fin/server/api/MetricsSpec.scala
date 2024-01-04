@@ -1,8 +1,8 @@
 package fin.server.api
 
-import akka.http.scaladsl.model.{HttpRequest, HttpResponse}
 import fin.server.UnitSpec
 import fin.server.telemetry.mocks.MockMeter
+import org.apache.pekko.http.scaladsl.model.{HttpRequest, HttpResponse}
 
 class MetricsSpec extends UnitSpec {
   "Metrics" should "provide a no-op implementation" in {

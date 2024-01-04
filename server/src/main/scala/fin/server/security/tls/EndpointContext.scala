@@ -1,7 +1,7 @@
 package fin.server.security.tls
 
-import akka.http.scaladsl.{ConnectionContext, HttpsConnectionContext, ServerBuilder}
 import com.typesafe.{config => typesafe}
+import org.apache.pekko.http.scaladsl.{ConnectionContext, HttpsConnectionContext, ServerBuilder}
 
 import java.io.{FileInputStream, FileNotFoundException}
 import java.security.{KeyStore, SecureRandom}

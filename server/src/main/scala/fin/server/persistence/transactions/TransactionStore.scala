@@ -1,7 +1,7 @@
 package fin.server.persistence.transactions
 
-import akka.Done
 import fin.server.model.{Account, Period, Transaction}
+import org.apache.pekko.Done
 
 import java.time.LocalDate
 import scala.concurrent.Future

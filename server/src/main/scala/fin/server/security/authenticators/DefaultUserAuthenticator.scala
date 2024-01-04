@@ -1,9 +1,9 @@
 package fin.server.security.authenticators
 
-import akka.http.scaladsl.model.headers.{HttpCredentials, OAuth2BearerToken}
 import fin.server.security.CurrentUser
 import fin.server.security.exceptions.AuthenticationFailure
 import fin.server.security.jwt.JwtAuthenticator
+import org.apache.pekko.http.scaladsl.model.headers.{HttpCredentials, OAuth2BearerToken}
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Try

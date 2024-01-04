@@ -1,10 +1,5 @@
 package fin.server.api.routes
 
-import akka.Done
-import akka.actor.typed.scaladsl.LoggerOps
-import akka.http.scaladsl.model.StatusCodes
-import akka.http.scaladsl.server.Directives._
-import akka.http.scaladsl.server.Route
 import fin.server.api.directives.JsonDirectives
 import fin.server.api.requests.{ApplyCategoryMappings, CreateCategoryMapping, UpdateCategoryMapping}
 import fin.server.api.responses.CategoryMappingsApplicationResult
@@ -12,12 +7,17 @@ import fin.server.imports.Defaults
 import fin.server.model.{CategoryMapping, Transaction}
 import fin.server.persistence.categories.CategoryMappingStore
 import fin.server.security.CurrentUser
+import org.apache.pekko.Done
+import org.apache.pekko.actor.typed.scaladsl.LoggerOps
+import org.apache.pekko.http.scaladsl.model.StatusCodes
+import org.apache.pekko.http.scaladsl.server.Directives._
+import org.apache.pekko.http.scaladsl.server.Route
 
 import java.time.Instant
 import scala.concurrent.Future
 
 class Categories()(implicit ctx: RoutesContext) extends ApiRoutes with JsonDirectives {
-  import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport._
+  import com.github.pjfanning.pekkohttpplayjson.PlayJsonSupport._
   import fin.server.api.Formats._
 
   private val store: CategoryMappingStore = ctx.persistence.categoryMappings

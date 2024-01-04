@@ -1,11 +1,11 @@
 package fin.server.security.keys
 
-import akka.actor.typed.scaladsl.Behaviors
-import akka.actor.typed.{ActorSystem, Behavior, SpawnProtocol}
 import com.typesafe.config.{Config, ConfigFactory}
 import fin.server.UnitSpec
 import fin.server.security.mocks.MockIdentityEndpoint
 import fin.server.security.tls.EndpointContext
+import org.apache.pekko.actor.typed.scaladsl.Behaviors
+import org.apache.pekko.actor.typed.{ActorSystem, Behavior, SpawnProtocol}
 import org.scalatest.BeforeAndAfterAll
 
 import scala.collection.mutable

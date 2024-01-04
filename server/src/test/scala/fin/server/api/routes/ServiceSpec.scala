@@ -1,8 +1,8 @@
 package fin.server.api.routes
 
-import akka.http.scaladsl.model.StatusCodes
-import akka.http.scaladsl.testkit.ScalatestRouteTest
 import fin.server.UnitSpec
+import org.apache.pekko.http.scaladsl.model.StatusCodes
+import org.apache.pekko.http.scaladsl.testkit.ScalatestRouteTest
 
 class ServiceSpec extends UnitSpec with ScalatestRouteTest {
   "Service routes" should "provide a health-check route" in {

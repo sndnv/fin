@@ -1,9 +1,9 @@
 package fin.server.security.mocks
 
-import akka.http.scaladsl.model.headers.{BasicHttpCredentials, HttpCredentials}
 import fin.server.security.CurrentUser
 import fin.server.security.authenticators.UserAuthenticator
 import fin.server.security.exceptions.AuthenticationFailure
+import org.apache.pekko.http.scaladsl.model.headers.{BasicHttpCredentials, HttpCredentials}
 
 import scala.concurrent.Future
 

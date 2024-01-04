@@ -1,7 +1,7 @@
 package fin.server.persistence.accounts
 
-import akka.Done
 import fin.server.model.Account
+import org.apache.pekko.Done
 
 import scala.concurrent.Future
 

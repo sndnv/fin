@@ -1,11 +1,11 @@
 package fin.server.security.authenticators
 
-import akka.http.scaladsl.model.headers.{BasicHttpCredentials, OAuth2BearerToken}
 import fin.server.UnitSpec
 import fin.server.security.exceptions.AuthenticationFailure
 import fin.server.security.jwt.DefaultJwtAuthenticator
 import fin.server.security.keys.KeyProvider
 import fin.server.security.mocks.{MockJwksGenerators, MockJwtGenerators}
+import org.apache.pekko.http.scaladsl.model.headers.{BasicHttpCredentials, OAuth2BearerToken}
 import org.jose4j.jws.AlgorithmIdentifiers
 
 import java.security.Key

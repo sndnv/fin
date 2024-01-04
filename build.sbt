@@ -6,36 +6,37 @@ name     := projectName
 licenses := Seq("Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0"))
 homepage := Some(url("https://github.com/sndnv/fin"))
 
-ThisBuild / scalaVersion := "2.13.10"
+ThisBuild / scalaVersion := "2.13.12"
 
 lazy val versions = new {
-  // akka
-  val akka         = "2.6.20"
-  val akkaHttp     = "10.2.10"
-  val akkaHttpCors = "1.1.3"
-  val akkaJson     = "1.39.2"
+  // pekko
+  val pekko         = "1.0.1"
+  val pekkoHttp     = "1.0.0"
+  val pekkoHttpCors = "1.0.0"
+  val pekkoJson     = "2.3.3"
 
   // persistence
   val slick    = "3.4.1"
-  val postgres = "42.5.1"
-  val h2       = "2.1.214"
+  val postgres = "42.7.1"
+  val h2       = "2.2.224"
 
   // telemetry
-  val openTelemetry           = "1.21.0"
+  val openTelemetry           = "1.33.0"
   val openTelemetryPrometheus = s"$openTelemetry-alpha"
   val prometheus              = "0.16.0"
 
   // testing
   val scalaCheck = "1.17.0"
-  val scalaTest  = "3.2.14"
-  val mockito    = "1.17.12"
+  val scalaTest  = "3.2.17"
+  val mockito    = "1.17.30"
 
   // misc
-  val playJson = "2.9.3"
-  val jose4j   = "0.9.2"
-  val logback  = "1.4.5"
-  val jaxbApi  = "2.3.1"
-  val scalaXml = "2.1.0"
+  val playJson    = "2.10.3"
+  val jose4j      = "0.9.4"
+  val logback     = "1.4.14"
+  val jaxbApi     = "2.3.1"
+  val scalaXml    = "2.2.0"
+  val scalaParser = "2.3.0"
 }
 
 lazy val jdkDockerImage = "openjdk:17-slim-bullseye"
@@ -46,31 +47,31 @@ lazy val server = (project in file("./server"))
   .settings(buildInfoSettings)
   .settings(
     libraryDependencies ++= Seq(
-      "com.typesafe.akka"      %% "akka-actor"                        % versions.akka,
-      "com.typesafe.akka"      %% "akka-actor-typed"                  % versions.akka,
-      "com.typesafe.akka"      %% "akka-stream"                       % versions.akka,
-      "com.typesafe.akka"      %% "akka-slf4j"                        % versions.akka,
-      "com.typesafe.akka"      %% "akka-http"                         % versions.akkaHttp,
-      "com.typesafe.akka"      %% "akka-http-core"                    % versions.akkaHttp,
-      "com.typesafe.akka"      %% "akka-http2-support"                % versions.akkaHttp,
+      "org.apache.pekko"       %% "pekko-actor"                       % versions.pekko,
+      "org.apache.pekko"       %% "pekko-actor-typed"                 % versions.pekko,
+      "org.apache.pekko"       %% "pekko-stream"                      % versions.pekko,
+      "org.apache.pekko"       %% "pekko-slf4j"                       % versions.pekko,
+      "org.apache.pekko"       %% "pekko-http"                        % versions.pekkoHttp,
+      "org.apache.pekko"       %% "pekko-http-core"                   % versions.pekkoHttp,
       "org.bitbucket.b_c"       % "jose4j"                            % versions.jose4j,
       "com.typesafe.play"      %% "play-json"                         % versions.playJson,
-      "de.heikoseeberger"      %% "akka-http-play-json"               % versions.akkaJson,
+      "com.github.pjfanning"   %% "pekko-http-play-json"              % versions.pekkoJson,
       "com.typesafe.slick"     %% "slick"                             % versions.slick,
       "com.h2database"          % "h2"                                % versions.h2,
       "org.postgresql"          % "postgresql"                        % versions.postgres,
-      "ch.megard"              %% "akka-http-cors"                    % versions.akkaHttpCors,
+      "org.apache.pekko"       %% "pekko-http-cors"                   % versions.pekkoHttpCors,
       "io.opentelemetry"        % "opentelemetry-sdk"                 % versions.openTelemetry,
       "io.opentelemetry"        % "opentelemetry-exporter-prometheus" % versions.openTelemetryPrometheus,
       "ch.qos.logback"          % "logback-classic"                   % versions.logback,
       "io.prometheus"           % "simpleclient_hotspot"              % versions.prometheus,
       "javax.xml.bind"          % "jaxb-api"                          % versions.jaxbApi,
       "org.scala-lang.modules" %% "scala-xml"                         % versions.scalaXml,
+      "org.scala-lang.modules" %% "scala-parser-combinators"          % versions.scalaParser,
       "org.scalacheck"         %% "scalacheck"                        % versions.scalaCheck % Test,
       "org.scalatest"          %% "scalatest"                         % versions.scalaTest  % Test,
-      "com.typesafe.akka"      %% "akka-testkit"                      % versions.akka       % Test,
-      "com.typesafe.akka"      %% "akka-stream-testkit"               % versions.akka       % Test,
-      "com.typesafe.akka"      %% "akka-http-testkit"                 % versions.akkaHttp   % Test,
+      "org.apache.pekko"       %% "pekko-testkit"                     % versions.pekko      % Test,
+      "org.apache.pekko"       %% "pekko-stream-testkit"              % versions.pekko      % Test,
+      "org.apache.pekko"       %% "pekko-http-testkit"                % versions.pekkoHttp  % Test,
       "org.mockito"            %% "mockito-scala"                     % versions.mockito    % Test,
       "org.mockito"            %% "mockito-scala-scalatest"           % versions.mockito    % Test
     ),
@@ -116,7 +117,7 @@ lazy val commonSettings = Seq(
     "-Wconf:src=twirl/.*:silent",
     s"-P:wartremover:excluded:${(Compile / sourceManaged).value}"
   ),
-  dependencyUpdatesFilter -= moduleFilter(organization = "com.typesafe.akka"),
+  dependencyUpdatesFilter -= moduleFilter(organization = "org.apache.pekko"),
   coverageExcludedPackages := "generated.*;scalaxb.*;(?:html|js).*;components\\.html.*"
 )
 

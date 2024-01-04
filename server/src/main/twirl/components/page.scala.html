@@ -74,18 +74,24 @@
         <div class="collapse navbar-collapse" id="navbarCollapse">
             <ul class="navbar-nav me-auto mb-2 mb-md-0">
                 @link(page = "home", current = currentPage, link = "/manage", title = "Home", navClass = "nav-item")
-                @link(page = "transactions", current = currentPage, link = "/manage/transactions", title = "Transactions", navClass = "nav-item")
-                @link(page = "forecasts", current = currentPage, link = "/manage/forecasts", title = "Forecasts", navClass = "nav-item")
-                @link(page = "reports", current = currentPage, link = "/manage/reports", title = "Reports", navClass = "nav-item")
+                @link(page = "transactions", current = currentPage, link = "/manage/transactions", title =
+                "Transactions", navClass = "nav-item")
+                @link(page = "forecasts", current = currentPage, link = "/manage/forecasts", title = "Forecasts",
+                navClass = "nav-item")
+                @link(page = "reports", current = currentPage, link = "/manage/reports", title = "Reports", navClass =
+                "nav-item")
             </ul>
             <ul class="navbar-nav navbar-right">
                 <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false" title="Configure">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
+                       aria-expanded="false" title="Configure">
                         <i class="bi bi-gear-wide-connected"></i>
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end">
-                        @link(page = "accounts", current = currentPage, link = "/manage/accounts", title = "Accounts", navClass = "dropdown-item")
-                        @link(page = "categories", current = currentPage, link = "/manage/categories", title = "Categories", navClass = "dropdown-item")
+                        @link(page = "accounts", current = currentPage, link = "/manage/accounts", title = "Accounts",
+                        navClass = "dropdown-item")
+                        @link(page = "categories", current = currentPage, link = "/manage/categories", title =
+                        "Categories", navClass = "dropdown-item")
                     </ul>
                 </li>
                 <li class="nav-item">

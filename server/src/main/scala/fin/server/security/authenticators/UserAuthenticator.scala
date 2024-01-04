@@ -1,7 +1,7 @@
 package fin.server.security.authenticators
 
-import akka.http.scaladsl.model.headers.HttpCredentials
 import fin.server.security.CurrentUser
+import org.apache.pekko.http.scaladsl.model.headers.HttpCredentials
 
 import scala.concurrent.Future
 

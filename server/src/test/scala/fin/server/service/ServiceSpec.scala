@@ -1,18 +1,18 @@
 package fin.server.service
 
-import akka.actor.typed.scaladsl.Behaviors
-import akka.actor.typed.{ActorSystem, Behavior, SpawnProtocol}
-import akka.http.scaladsl.Http
-import akka.http.scaladsl.marshalling.{Marshal, Marshaller}
-import akka.http.scaladsl.model._
-import akka.http.scaladsl.model.headers.OAuth2BearerToken
-import akka.http.scaladsl.testkit.ScalatestRouteTest
-import akka.http.scaladsl.unmarshalling.Unmarshal
 import com.typesafe.config.{Config, ConfigFactory}
 import fin.server.UnitSpec
 import fin.server.model.Account
 import fin.server.security.mocks.{MockIdentityEndpoint, MockJwtGenerators}
 import fin.server.security.tls.EndpointContext
+import org.apache.pekko.actor.typed.scaladsl.Behaviors
+import org.apache.pekko.actor.typed.{ActorSystem, Behavior, SpawnProtocol}
+import org.apache.pekko.http.scaladsl.Http
+import org.apache.pekko.http.scaladsl.marshalling.{Marshal, Marshaller}
+import org.apache.pekko.http.scaladsl.model._
+import org.apache.pekko.http.scaladsl.model.headers.OAuth2BearerToken
+import org.apache.pekko.http.scaladsl.testkit.ScalatestRouteTest
+import org.apache.pekko.http.scaladsl.unmarshalling.Unmarshal
 import org.jose4j.jwk.JsonWebKey
 import org.scalatest.concurrent.Eventually
 
@@ -87,7 +87,7 @@ class ServiceSpec extends UnitSpec with ScalatestRouteTest with Eventually {
     serviceUrl: String,
     jwt: String
   )(implicit trustedContext: EndpointContext): Future[Seq[Account]] = {
-    import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport._
+    import com.github.pjfanning.pekkohttpplayjson.PlayJsonSupport._
     import fin.server.api.Formats._
 
     Http()

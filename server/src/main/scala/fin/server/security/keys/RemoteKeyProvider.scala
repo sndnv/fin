@@ -1,13 +1,13 @@
 package fin.server.security.keys
 
-import akka.Done
-import akka.actor.typed.scaladsl.LoggerOps
-import akka.actor.typed.ActorSystem
-import akka.http.scaladsl.model.{HttpMethods, HttpRequest, HttpResponse, StatusCodes}
-import akka.http.scaladsl.unmarshalling.Unmarshal
-import akka.http.scaladsl.{Http, HttpsConnectionContext}
 import fin.server.security.exceptions.ProviderFailure
 import fin.server.security.tls.EndpointContext
+import org.apache.pekko.Done
+import org.apache.pekko.actor.typed.ActorSystem
+import org.apache.pekko.actor.typed.scaladsl.LoggerOps
+import org.apache.pekko.http.scaladsl.model.{HttpMethods, HttpRequest, HttpResponse, StatusCodes}
+import org.apache.pekko.http.scaladsl.unmarshalling.Unmarshal
+import org.apache.pekko.http.scaladsl.{Http, HttpsConnectionContext}
 import org.jose4j.jwk.JsonWebKeySet
 import org.jose4j.jws.AlgorithmIdentifiers
 import org.slf4j.LoggerFactory

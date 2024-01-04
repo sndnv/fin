@@ -1,7 +1,7 @@
 package fin.server.persistence.categories
 
-import akka.Done
 import fin.server.model.CategoryMapping
+import org.apache.pekko.Done
 
 import scala.concurrent.Future
 

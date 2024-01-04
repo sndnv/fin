@@ -1,10 +1,10 @@
 package fin.server.api.routes
 
-import akka.http.scaladsl.marshalling.{Marshaller, ToEntityMarshaller}
-import akka.http.scaladsl.model.{DateTime, MediaTypes}
-import akka.http.scaladsl.server.Directives._
-import akka.http.scaladsl.server.{Route, StandardRoute}
 import fin.server.service.ServiceMode
+import org.apache.pekko.http.scaladsl.marshalling.{Marshaller, ToEntityMarshaller}
+import org.apache.pekko.http.scaladsl.model.{DateTime, MediaTypes}
+import org.apache.pekko.http.scaladsl.server.Directives._
+import org.apache.pekko.http.scaladsl.server.{Route, StandardRoute}
 import play.twirl.api.Appendable
 
 class Manage(config: Manage.Config)(implicit mode: ServiceMode) {

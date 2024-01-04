@@ -1,8 +1,8 @@
 package fin.server.persistence.categories
 
-import akka.Done
-import akka.actor.typed.{ActorSystem, DispatcherSelector}
 import fin.server.model.CategoryMapping
+import org.apache.pekko.Done
+import org.apache.pekko.actor.typed.{ActorSystem, DispatcherSelector}
 import slick.ast.BaseTypedType
 import slick.jdbc.JdbcProfile
 import slick.lifted.ProvenShape

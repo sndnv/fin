@@ -1,7 +1,7 @@
 package fin.server.persistence.forecasts
 
-import akka.Done
 import fin.server.model.{Forecast, Period}
+import org.apache.pekko.Done
 
 import scala.concurrent.Future
 

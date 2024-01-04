@@ -1,8 +1,5 @@
 package fin.server.api.routes
 
-import akka.http.scaladsl.model.StatusCodes
-import akka.http.scaladsl.server.Route
-import akka.http.scaladsl.testkit.ScalatestRouteTest
 import fin.server.UnitSpec
 import fin.server.api.responses.{TransactionBreakdown, TransactionSummary}
 import fin.server.model.{Forecast, Transaction}
@@ -13,6 +10,9 @@ import fin.server.persistence.forecasts.ForecastStore
 import fin.server.persistence.mocks.{MockAccountStore, MockCategoryMappingStore, MockForecastStore, MockTransactionStore}
 import fin.server.persistence.transactions.TransactionStore
 import fin.server.security.CurrentUser
+import org.apache.pekko.http.scaladsl.model.StatusCodes
+import org.apache.pekko.http.scaladsl.server.Route
+import org.apache.pekko.http.scaladsl.testkit.ScalatestRouteTest
 import org.slf4j.{Logger, LoggerFactory}
 
 import java.time.{Instant, LocalDate}
@@ -20,7 +20,7 @@ import java.util.UUID
 import scala.concurrent.Future
 
 class ReportsSpec extends UnitSpec with ScalatestRouteTest {
-  import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport._
+  import com.github.pjfanning.pekkohttpplayjson.PlayJsonSupport._
   import fin.server.api.Formats._
 
   "Reports routes" should "retrieve all transaction and forecast categories" in {

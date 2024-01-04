@@ -1,11 +1,5 @@
 package fin.server.api
 
-import akka.actor.typed.ActorSystem
-import akka.http.scaladsl.Http
-import akka.http.scaladsl.model.StatusCodes
-import akka.http.scaladsl.server.Directives._
-import akka.http.scaladsl.server._
-import ch.megard.akka.http.cors.scaladsl.CorsDirectives._
 import fin.server.api.directives.{EntityDiscardingDirectives, LoggingDirectives}
 import fin.server.api.routes._
 import fin.server.persistence.ServerPersistence
@@ -13,6 +7,12 @@ import fin.server.security.authenticators.UserAuthenticator
 import fin.server.security.tls.EndpointContext
 import fin.server.service.ServiceMode
 import fin.server.telemetry.TelemetryContext
+import org.apache.pekko.actor.typed.ActorSystem
+import org.apache.pekko.http.cors.scaladsl.CorsDirectives._
+import org.apache.pekko.http.scaladsl.Http
+import org.apache.pekko.http.scaladsl.model.StatusCodes
+import org.apache.pekko.http.scaladsl.server.Directives._
+import org.apache.pekko.http.scaladsl.server._
 import org.slf4j.{Logger, LoggerFactory}
 
 import scala.concurrent.Future

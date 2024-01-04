@@ -1,11 +1,11 @@
 package fin.server.security.mocks
 
-import akka.actor.typed.ActorSystem
-import akka.http.scaladsl.Http
-import akka.http.scaladsl.model.{ContentTypes, HttpEntity, StatusCodes}
-import akka.http.scaladsl.server.Directives._
-import akka.http.scaladsl.server.Route
 import fin.server.security.tls.EndpointContext
+import org.apache.pekko.actor.typed.ActorSystem
+import org.apache.pekko.http.scaladsl.Http
+import org.apache.pekko.http.scaladsl.model.{ContentTypes, HttpEntity, StatusCodes}
+import org.apache.pekko.http.scaladsl.server.Directives._
+import org.apache.pekko.http.scaladsl.server.Route
 import org.jose4j.jwk.JsonWebKeySet
 
 import java.security.PublicKey
