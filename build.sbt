@@ -40,6 +40,7 @@ lazy val versions = new {
 }
 
 lazy val jdkDockerImage = "openjdk:17-slim-bullseye"
+lazy val dockerRegistry = "ghcr.io/sndnv/fin"
 
 lazy val server = (project in file("./server"))
   .settings(commonSettings)
@@ -123,7 +124,8 @@ lazy val commonSettings = Seq(
 
 lazy val dockerSettings = Seq(
   packageName          := s"$projectName-${name.value}",
-  executableScriptName := s"$projectName-${name.value}"
+  executableScriptName := s"$projectName-${name.value}",
+  dockerRepository     := Some(dockerRegistry)
 )
 
 lazy val buildInfoSettings = Seq(
