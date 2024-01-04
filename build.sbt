@@ -1,4 +1,4 @@
-import sbt.Keys._
+import sbt.Keys.*
 
 lazy val projectName = "fin"
 
@@ -10,7 +10,7 @@ ThisBuild / scalaVersion := "2.13.12"
 
 lazy val versions = new {
   // pekko
-  val pekko         = "1.0.1"
+  val pekko         = "1.0.2"
   val pekkoHttp     = "1.0.0"
   val pekkoHttpCors = "1.0.0"
   val pekkoJson     = "2.3.3"
@@ -97,6 +97,8 @@ lazy val commonSettings = Seq(
     val previous: Artifact = artifact.value
     previous.withName(name = s"$projectName-${previous.name}")
   },
+  publishArtifact          := false,
+  Docker / publish         := {},
   scalacOptions ++= Seq(
     "-encoding",
     "UTF-8",
@@ -118,7 +120,6 @@ lazy val commonSettings = Seq(
     "-Wconf:src=twirl/.*:silent",
     s"-P:wartremover:excluded:${(Compile / sourceManaged).value}"
   ),
-  dependencyUpdatesFilter -= moduleFilter(organization = "org.apache.pekko"),
   coverageExcludedPackages := "generated.*;scalaxb.*;(?:html|js).*;components\\.html.*"
 )
 
