@@ -1,12 +1,12 @@
 package fin.server.telemetry.metrics
 
-import akka.actor.typed.scaladsl.Behaviors
-import akka.actor.typed.{ActorSystem, Behavior, SpawnProtocol}
-import akka.http.scaladsl.Http
-import akka.http.scaladsl.model.{HttpMethods, HttpRequest, HttpResponse, StatusCodes}
-import akka.http.scaladsl.unmarshalling.Unmarshal
 import fin.server.UnitSpec
 import io.opentelemetry.api.common.AttributeKey
+import org.apache.pekko.actor.typed.scaladsl.Behaviors
+import org.apache.pekko.actor.typed.{ActorSystem, Behavior, SpawnProtocol}
+import org.apache.pekko.http.scaladsl.Http
+import org.apache.pekko.http.scaladsl.model.{HttpMethods, HttpRequest, HttpResponse, StatusCodes}
+import org.apache.pekko.http.scaladsl.unmarshalling.Unmarshal
 
 import scala.collection.mutable
 import scala.concurrent.Future
@@ -26,7 +26,7 @@ class MetricsExporterSpec extends UnitSpec {
       metrics <- getMetrics(metricsUrl = s"http://localhost:$port")
     } yield {
       val _ = exporter.shutdown()
-      metrics.sorted.toList match {
+      metrics.filterNot(_.startsWith("target")).sorted.toList match {
         case counter1 :: counter2 :: Nil =>
           counter1 should startWith("counter_1")
           counter2 should startWith("counter_2")
@@ -67,7 +67,7 @@ class MetricsExporterSpec extends UnitSpec {
     } yield {
       val _ = exporter.shutdown()
 
-      metrics.sorted.toList match {
+      metrics.filterNot(_.startsWith("target")).sorted.toList match {
         case counter3 :: counter4 :: prometheusCounter1 :: prometheusCounter2 :: Nil =>
           counter3 should startWith("counter_3")
           counter4 should startWith("counter_4")

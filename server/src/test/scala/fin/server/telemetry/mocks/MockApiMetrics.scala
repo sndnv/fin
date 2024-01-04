@@ -1,7 +1,7 @@
 package fin.server.telemetry.mocks
 
-import akka.http.scaladsl.model.{HttpRequest, HttpResponse}
 import fin.server.api.Metrics
+import org.apache.pekko.http.scaladsl.model.{HttpRequest, HttpResponse}
 
 import java.util.concurrent.atomic.AtomicInteger
 

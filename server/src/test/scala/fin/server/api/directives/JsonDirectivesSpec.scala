@@ -1,11 +1,11 @@
 package fin.server.api.directives
 
-import akka.http.scaladsl.model.{ContentTypes, Multipart, StatusCodes}
-import akka.http.scaladsl.server.Directives
-import akka.http.scaladsl.testkit.ScalatestRouteTest
 import fin.server.UnitSpec
 import fin.server.api.Formats
 import fin.server.api.requests.CreateAccount
+import org.apache.pekko.http.scaladsl.model.{ContentTypes, Multipart, StatusCodes}
+import org.apache.pekko.http.scaladsl.server.Directives
+import org.apache.pekko.http.scaladsl.testkit.ScalatestRouteTest
 
 import java.io.File
 import java.util.concurrent.atomic.AtomicInteger

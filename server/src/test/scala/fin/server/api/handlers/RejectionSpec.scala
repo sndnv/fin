@@ -1,17 +1,17 @@
 package fin.server.api.handlers
 
-import akka.http.scaladsl.model.{ContentTypes, HttpEntity, StatusCodes}
-import akka.http.scaladsl.server.Directives.{as, complete => compl, entity, get}
-import akka.http.scaladsl.server.{RejectionHandler, Route}
-import akka.http.scaladsl.testkit.ScalatestRouteTest
 import fin.server.UnitSpec
 import fin.server.api.responses.MessageResponse
+import org.apache.pekko.http.scaladsl.model.{ContentTypes, HttpEntity, StatusCodes}
+import org.apache.pekko.http.scaladsl.server.Directives.{as, complete => compl, entity, get}
+import org.apache.pekko.http.scaladsl.server.{RejectionHandler, Route}
+import org.apache.pekko.http.scaladsl.testkit.ScalatestRouteTest
 import org.slf4j.LoggerFactory
 import play.api.libs.json.JsArray
 
 class RejectionSpec extends UnitSpec with ScalatestRouteTest {
   "Rejection handler" should "reject requests with invalid entities" in {
-    import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport._
+    import com.github.pjfanning.pekkohttpplayjson.PlayJsonSupport._
     import fin.server.api.Formats.messageResponseFormat
 
     implicit val handler: RejectionHandler = Rejection.create(log)

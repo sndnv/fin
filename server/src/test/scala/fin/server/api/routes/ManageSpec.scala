@@ -1,10 +1,10 @@
 package fin.server.api.routes
 
-import akka.http.scaladsl.model.StatusCodes
-import akka.http.scaladsl.server.Route
-import akka.http.scaladsl.testkit.ScalatestRouteTest
 import fin.server.UnitSpec
 import fin.server.service.ServiceMode
+import org.apache.pekko.http.scaladsl.model.StatusCodes
+import org.apache.pekko.http.scaladsl.server.Route
+import org.apache.pekko.http.scaladsl.testkit.ScalatestRouteTest
 
 class ManageSpec extends UnitSpec with ScalatestRouteTest {
   "Manage routes" should "load their config" in {

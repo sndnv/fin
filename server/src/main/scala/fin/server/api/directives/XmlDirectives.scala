@@ -1,19 +1,18 @@
 package fin.server.api.directives
 
-import java.io.ByteArrayInputStream
-import java.util.zip.ZipInputStream
-
-import scala.util.{Failure, Success, Try, Using}
-import scala.xml.{NodeSeq, XML}
-
-import akka.http.scaladsl.model._
-import akka.http.scaladsl.model.MediaTypes._
-import akka.http.scaladsl.server.{Directive, Directive1}
-import akka.http.scaladsl.server.Directives._
-import akka.http.scaladsl.unmarshalling._
-import akka.util.ByteString
+import org.apache.pekko.http.scaladsl.model.MediaTypes._
+import org.apache.pekko.http.scaladsl.model._
+import org.apache.pekko.http.scaladsl.server.Directives._
+import org.apache.pekko.http.scaladsl.server.{Directive, Directive1}
+import org.apache.pekko.http.scaladsl.unmarshalling._
+import org.apache.pekko.util.ByteString
 import org.slf4j.Logger
 import scalaxb.XMLFormat
+
+import java.io.ByteArrayInputStream
+import java.util.zip.ZipInputStream
+import scala.util.{Failure, Success, Try, Using}
+import scala.xml.{NodeSeq, XML}
 
 trait XmlDirectives {
   def xmlEntity[T](implicit format: XMLFormat[T], log: Logger): Directive1[T] = Directive { inner =>

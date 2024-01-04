@@ -1,9 +1,5 @@
 package fin.server.api.routes
 
-import akka.http.scaladsl.marshalling.Marshal
-import akka.http.scaladsl.model.{ContentTypes, Multipart, RequestEntity, StatusCodes}
-import akka.http.scaladsl.server.Route
-import akka.http.scaladsl.testkit.ScalatestRouteTest
 import fin.server.UnitSpec
 import fin.server.api.requests.{ApplyCategoryMappings, CreateCategoryMapping, UpdateCategoryMapping}
 import fin.server.imports.Defaults
@@ -15,6 +11,10 @@ import fin.server.persistence.forecasts.ForecastStore
 import fin.server.persistence.mocks.{MockAccountStore, MockCategoryMappingStore, MockForecastStore, MockTransactionStore}
 import fin.server.persistence.transactions.TransactionStore
 import fin.server.security.CurrentUser
+import org.apache.pekko.http.scaladsl.marshalling.Marshal
+import org.apache.pekko.http.scaladsl.model.{ContentTypes, Multipart, RequestEntity, StatusCodes}
+import org.apache.pekko.http.scaladsl.server.Route
+import org.apache.pekko.http.scaladsl.testkit.ScalatestRouteTest
 import org.slf4j.{Logger, LoggerFactory}
 
 import java.io.File
@@ -23,7 +23,7 @@ import java.util.UUID
 import scala.concurrent.Future
 
 class CategoriesSpec extends UnitSpec with ScalatestRouteTest {
-  import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport._
+  import com.github.pjfanning.pekkohttpplayjson.PlayJsonSupport._
   import fin.server.api.Formats._
 
   "Categories routes" should "respond with all category mappings" in {

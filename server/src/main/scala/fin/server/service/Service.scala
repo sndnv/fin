@@ -1,8 +1,5 @@
 package fin.server.service
 
-import akka.Done
-import akka.actor.typed.ActorSystem
-import akka.actor.typed.scaladsl.Behaviors
 import com.typesafe.{config => typesafe}
 import fin.server.api.ApiEndpoint
 import fin.server.persistence.DefaultServerPersistence
@@ -14,6 +11,9 @@ import fin.server.telemetry.metrics.MetricsExporter
 import fin.server.telemetry.{DefaultTelemetryContext, TelemetryContext}
 import fin.server.{api, BuildInfo}
 import io.prometheus.client.hotspot.DefaultExports
+import org.apache.pekko.Done
+import org.apache.pekko.actor.typed.ActorSystem
+import org.apache.pekko.actor.typed.scaladsl.Behaviors
 import org.slf4j.{Logger, LoggerFactory}
 
 import java.time.Instant

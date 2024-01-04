@@ -1,7 +1,7 @@
 package fin.server.api.directives
 
-import akka.http.scaladsl.server.Directives._
-import akka.http.scaladsl.server.{Directive, Directive0}
+import org.apache.pekko.http.scaladsl.server.Directives._
+import org.apache.pekko.http.scaladsl.server.{Directive, Directive0}
 
 trait EntityDiscardingDirectives {
   def discardEntity: Directive0 =

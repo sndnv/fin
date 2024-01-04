@@ -1,11 +1,11 @@
 package fin.server.telemetry.metrics
 
-import akka.Done
 import fin.server.telemetry.metrics.internal.PrometheusProxyRegistry
 import io.opentelemetry.api.metrics.Meter
 import io.opentelemetry.exporter.prometheus.PrometheusHttpServer
 import io.opentelemetry.sdk.metrics.SdkMeterProvider
 import io.prometheus.client.CollectorRegistry
+import org.apache.pekko.Done
 
 import scala.concurrent.{Future, Promise}
 

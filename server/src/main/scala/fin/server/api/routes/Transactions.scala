@@ -1,10 +1,5 @@
 package fin.server.api.routes
 
-import akka.actor.typed.scaladsl.LoggerOps
-import akka.http.scaladsl.model._
-import akka.http.scaladsl.server.Directives._
-import akka.http.scaladsl.server.Route
-import akka.http.scaladsl.unmarshalling._
 import fin.server.api.directives.XmlDirectives
 import fin.server.api.requests.{CreateTransaction, UpdateTransaction}
 import fin.server.api.responses.TransactionImportResult
@@ -12,6 +7,11 @@ import fin.server.imports
 import fin.server.model.Period
 import fin.server.persistence.transactions.TransactionStore
 import fin.server.security.CurrentUser
+import org.apache.pekko.actor.typed.scaladsl.LoggerOps
+import org.apache.pekko.http.scaladsl.model._
+import org.apache.pekko.http.scaladsl.server.Directives._
+import org.apache.pekko.http.scaladsl.server.Route
+import org.apache.pekko.http.scaladsl.unmarshalling._
 
 class Transactions()(implicit ctx: RoutesContext) extends ApiRoutes with XmlDirectives {
   import Transactions._
@@ -21,7 +21,7 @@ class Transactions()(implicit ctx: RoutesContext) extends ApiRoutes with XmlDire
   def routes(implicit currentUser: CurrentUser): Route =
     concat(
       pathEndOrSingleSlash {
-        import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport._
+        import com.github.pjfanning.pekkohttpplayjson.PlayJsonSupport._
         import fin.server.api.Formats._
 
         concat(
@@ -54,7 +54,7 @@ class Transactions()(implicit ctx: RoutesContext) extends ApiRoutes with XmlDire
         )
       },
       path(JavaUUID) { transactionId =>
-        import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport._
+        import com.github.pjfanning.pekkohttpplayjson.PlayJsonSupport._
         import fin.server.api.Formats._
 
         concat(
@@ -129,7 +129,7 @@ class Transactions()(implicit ctx: RoutesContext) extends ApiRoutes with XmlDire
                       }
 
                     onSuccess(store.load(transactions)) { case (successful, existing) =>
-                      import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport._
+                      import com.github.pjfanning.pekkohttpplayjson.PlayJsonSupport._
                       import fin.server.api.Formats._
 
                       log.debugN(
@@ -173,7 +173,7 @@ class Transactions()(implicit ctx: RoutesContext) extends ApiRoutes with XmlDire
             query.trim match {
               case trimmed if trimmed.nonEmpty =>
                 onSuccess(store.search(query)) { transactions =>
-                  import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport._
+                  import com.github.pjfanning.pekkohttpplayjson.PlayJsonSupport._
                   import fin.server.api.Formats._
 
                   log.debugN("User [{}] retrieved [{}] transactions for query [{}]", currentUser, transactions.length, query)
@@ -189,7 +189,7 @@ class Transactions()(implicit ctx: RoutesContext) extends ApiRoutes with XmlDire
       path("categories") {
         get {
           onSuccess(store.categories()) { categories =>
-            import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport._
+            import com.github.pjfanning.pekkohttpplayjson.PlayJsonSupport._
 
             log.debugN("User [{}] retrieved [{}] transaction categories", currentUser, categories.length)
             discardEntity & complete(categories)

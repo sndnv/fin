@@ -10,7 +10,7 @@ The provided `docker-compose.yml` defines all `fin` services and their configura
 4) Enable bootstrap/DB init for `identity` and `server` (first-run only; should be disabled normally)
 5) Make sure that:
    * the correct docker images are used for all services
-   * the correct values for `AKKA_HTTP_CORS_ALLOWED_ORIGINS` are set for both `identity` and `server`
+   * the correct values for `PEKKO_HTTP_CORS_ALLOWED_ORIGINS` are set for both `identity` and `server`
 6) Start services with `docker-compose up`
 
 ## Deployment Components

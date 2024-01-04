@@ -1,12 +1,12 @@
 package fin.server.security.tls
 
-import akka.actor.ActorSystem
-import akka.http.scaladsl.Http
-import akka.http.scaladsl.model.{HttpMethods, HttpRequest, HttpResponse, StatusCodes}
-import akka.http.scaladsl.server.Directives
-import akka.http.scaladsl.server.Directives._
 import com.typesafe.config.{Config, ConfigFactory}
 import fin.server.UnitSpec
+import org.apache.pekko.actor.ActorSystem
+import org.apache.pekko.http.scaladsl.Http
+import org.apache.pekko.http.scaladsl.model.{HttpMethods, HttpRequest, HttpResponse, StatusCodes}
+import org.apache.pekko.http.scaladsl.server.Directives
+import org.apache.pekko.http.scaladsl.server.Directives._
 
 import java.io.FileNotFoundException
 import scala.collection.mutable

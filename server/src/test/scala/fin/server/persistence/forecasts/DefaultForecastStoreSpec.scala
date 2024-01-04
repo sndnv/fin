@@ -1,9 +1,9 @@
 package fin.server.persistence.forecasts
 
-import akka.actor.typed.ActorSystem
-import akka.actor.typed.scaladsl.Behaviors
 import fin.server.UnitSpec
 import fin.server.model.{Forecast, Period, Transaction}
+import org.apache.pekko.actor.typed.ActorSystem
+import org.apache.pekko.actor.typed.scaladsl.Behaviors
 import org.scalatest.BeforeAndAfterAll
 import slick.jdbc.H2Profile
 

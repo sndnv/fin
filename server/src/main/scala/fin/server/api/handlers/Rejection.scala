@@ -1,10 +1,10 @@
 package fin.server.api.handlers
 
-import akka.actor.typed.scaladsl.LoggerOps
-import akka.http.scaladsl.model.StatusCodes
-import akka.http.scaladsl.server.Directives._
-import akka.http.scaladsl.server.{RejectionHandler, ValidationRejection}
 import fin.server.api.responses.MessageResponse
+import org.apache.pekko.actor.typed.scaladsl.LoggerOps
+import org.apache.pekko.http.scaladsl.model.StatusCodes
+import org.apache.pekko.http.scaladsl.server.Directives._
+import org.apache.pekko.http.scaladsl.server.{RejectionHandler, ValidationRejection}
 import org.slf4j.Logger
 
 object Rejection {
@@ -12,7 +12,7 @@ object Rejection {
     RejectionHandler
       .newBuilder()
       .handle { case ValidationRejection(rejectionMessage, _) =>
-        import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport._
+        import com.github.pjfanning.pekkohttpplayjson.PlayJsonSupport._
         import fin.server.api.Formats.messageResponseFormat
 
         extractRequest { request =>

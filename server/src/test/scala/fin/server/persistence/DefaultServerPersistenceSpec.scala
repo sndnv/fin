@@ -1,10 +1,10 @@
 package fin.server.persistence
 
-import akka.actor.typed.scaladsl.Behaviors
-import akka.actor.typed.{ActorSystem, Behavior, SpawnProtocol}
 import com.typesafe.config.Config
 import fin.server.UnitSpec
-import fin.server.model.{Account, CategoryMapping, Forecast, Period, Transaction}
+import fin.server.model._
+import org.apache.pekko.actor.typed.scaladsl.Behaviors
+import org.apache.pekko.actor.typed.{ActorSystem, Behavior, SpawnProtocol}
 import org.slf4j.{Logger, LoggerFactory}
 
 import java.time.{Instant, LocalDate}

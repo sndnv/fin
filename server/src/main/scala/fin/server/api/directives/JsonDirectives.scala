@@ -1,9 +1,9 @@
 package fin.server.api.directives
 
-import akka.http.scaladsl.model.StatusCodes
-import akka.http.scaladsl.server.Directives._
-import akka.http.scaladsl.server.{Directive, Directive1}
-import akka.util.ByteString
+import org.apache.pekko.http.scaladsl.model.StatusCodes
+import org.apache.pekko.http.scaladsl.server.Directives._
+import org.apache.pekko.http.scaladsl.server.{Directive, Directive1}
+import org.apache.pekko.util.ByteString
 import play.api.libs.json._
 
 import scala.util.{Failure, Success, Try}

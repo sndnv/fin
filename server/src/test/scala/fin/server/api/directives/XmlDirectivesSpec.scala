@@ -1,14 +1,14 @@
 package fin.server.api.directives
 
-import java.io.File
-import java.util.concurrent.atomic.AtomicInteger
-
-import akka.http.scaladsl.model.{ContentTypes, HttpEntity, Multipart, StatusCodes}
-import akka.http.scaladsl.server.Directives
-import akka.http.scaladsl.testkit.ScalatestRouteTest
 import fin.server.UnitSpec
+import org.apache.pekko.http.scaladsl.model.{ContentTypes, HttpEntity, Multipart, StatusCodes}
+import org.apache.pekko.http.scaladsl.server.Directives
+import org.apache.pekko.http.scaladsl.testkit.ScalatestRouteTest
 import org.slf4j.{Logger, LoggerFactory}
 import scalaxb.XMLStandardTypes
+
+import java.io.File
+import java.util.concurrent.atomic.AtomicInteger
 
 class XmlDirectivesSpec extends UnitSpec with ScalatestRouteTest {
   "XmlDirectives" should "support parsing upload types" in {

@@ -1,8 +1,8 @@
 package fin.server.persistence.mocks
 
-import akka.Done
 import fin.server.model.CategoryMapping
 import fin.server.persistence.categories.CategoryMappingStore
+import org.apache.pekko.Done
 
 import java.time.Instant
 import java.util.concurrent.ConcurrentHashMap
