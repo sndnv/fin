@@ -32,7 +32,7 @@ jobs:
 
       - name: Build and publish fin image
         run: |
-          sbt docker:publish
+          sbt server/docker:publish
 
   release:
     runs-on: ubuntu-latest
