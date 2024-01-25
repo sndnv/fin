@@ -2,6 +2,9 @@ package fin.server.api.responses
 
 import fin.server.model.Transaction
 
+import java.time.DayOfWeek
+import java.time.temporal.WeekFields
+
 final case class TransactionBreakdown(
   currencies: Map[String, TransactionBreakdown.ForCurrency]
 )
@@ -40,6 +43,7 @@ object TransactionBreakdown {
       breakdownType match {
         case BreakdownType.ByYear  => transactions.groupBy(BreakdownKey.forYear)
         case BreakdownType.ByMonth => transactions.groupBy(BreakdownKey.forMonth)
+        case BreakdownType.ByWeek  => transactions.groupBy(BreakdownKey.forWeek)
         case BreakdownType.ByDay   => transactions.groupBy(BreakdownKey.forDay)
       }
     ).view.mapValues { groupedTransactions =>
@@ -82,6 +86,7 @@ object TransactionBreakdown {
   object BreakdownType {
     case object ByYear extends BreakdownType
     case object ByMonth extends BreakdownType
+    case object ByWeek extends BreakdownType
     case object ByDay extends BreakdownType
 
     @SuppressWarnings(Array("org.wartremover.warts.Throw"))
@@ -89,6 +94,7 @@ object TransactionBreakdown {
       value match {
         case "by-year"  => ByYear
         case "by-month" => ByMonth
+        case "by-week"  => ByWeek
         case "by-day"   => ByDay
         case _          => throw new IllegalArgumentException(s"Invalid breakdown type provided: [$value]")
       }
@@ -111,6 +117,15 @@ object TransactionBreakdown {
         currency = transaction.currency
       )
 
+    def forWeek(transaction: Transaction): BreakdownKey = {
+      val weekStart = transaction.date.`with`(FirstDayOfWeek)
+      BreakdownKey(
+        period = f"${weekStart.getYear}-${weekStart.getMonthValue}%02d-${weekStart.getDayOfMonth}%02d",
+        category = transaction.category,
+        currency = transaction.currency
+      )
+    }
+
     def forDay(transaction: Transaction): BreakdownKey =
       BreakdownKey(
         period = f"${transaction.date.getYear}-${transaction.date.getMonthValue}%02d-${transaction.date.getDayOfMonth}%02d",
@@ -122,4 +137,5 @@ object TransactionBreakdown {
   private val Zero: BigDecimal = BigDecimal(0)
   private val ZeroIncome: Income = Income(value = Zero, transactions = 0)
   private val ZeroExpenses: Expenses = Expenses(value = Zero, transactions = 0)
+  private val FirstDayOfWeek: DayOfWeek = WeekFields.ISO.getFirstDayOfWeek
 }

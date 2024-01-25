@@ -52,7 +52,7 @@ services:
       PG_EXPORTER_AUTO_DISCOVER_DATABASES: "true"
 
   identity:
-    image: stasis-identity:0.0.1-SNAPSHOT # replace with actual tag/version
+    image: ghcr.io/sndnv/stasis/stasis-identity:1.0.0 # replace with actual tag/version
     depends_on:
       - db-identity
     restart: always
@@ -108,7 +108,7 @@ services:
       - ./secrets/identity-signature-key.jwk.json:/opt/docker/secrets/identity-signature-key.jwk.json
 
   identity-ui:
-    image: stasis-identity-ui:0.0.1-SNAPSHOT # replace with actual tag/version
+    image: ghcr.io/sndnv/stasis/stasis-identity-ui:1.0.0 # replace with actual tag/version
     restart: always
     ports:
       - '52200:52200'
@@ -134,7 +134,7 @@ services:
       - ./secrets/identity.key.pem:/opt/docker/secrets/identity.key.pem
 
   server:
-    image: fin-server:0.0.1-SNAPSHOT # replace with actual tag/version
+    image: ghcr.io/sndnv/fin/fin-server:1.0.0 # replace with actual tag/version
     restart: always
     depends_on:
       - db-server
