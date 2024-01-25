@@ -9,6 +9,7 @@ class TransactionBreakdownSpec extends UnitSpec {
   "A TransactionBreakdown" should "support parsing breakdown types" in {
     TransactionBreakdown.BreakdownType(value = "by-year") should be(TransactionBreakdown.BreakdownType.ByYear)
     TransactionBreakdown.BreakdownType(value = "by-month") should be(TransactionBreakdown.BreakdownType.ByMonth)
+    TransactionBreakdown.BreakdownType(value = "by-week") should be(TransactionBreakdown.BreakdownType.ByWeek)
     TransactionBreakdown.BreakdownType(value = "by-day") should be(TransactionBreakdown.BreakdownType.ByDay)
     an[IllegalArgumentException] should be thrownBy TransactionBreakdown.BreakdownType(value = "other")
   }
@@ -122,6 +123,79 @@ class TransactionBreakdownSpec extends UnitSpec {
               )
             ),
             "2020-12" -> TransactionBreakdown.ForPeriod(
+              income = 42.asIncome(withTransactions = 1),
+              expenses = 0.asExpenses(withTransactions = 0),
+              categories = Map(
+                "test-category" -> TransactionBreakdown.ForCategory(
+                  income = 42.asIncome(withTransactions = 1),
+                  expenses = 0.asExpenses(withTransactions = 0)
+                )
+              )
+            )
+          )
+        )
+      )
+    )
+
+    actual should be(expected)
+  }
+
+  it should "support creating a breakdown (by week) from a list of transactions" in {
+    val actual = TransactionBreakdown(breakdownType = TransactionBreakdown.BreakdownType.ByWeek, transactions = transactions)
+
+    val expected = TransactionBreakdown(
+      currencies = Map(
+        "EUR" -> TransactionBreakdown.ForCurrency(
+          periods = Map(
+            "2018-12-31" -> TransactionBreakdown.ForPeriod(
+              income = 50.asIncome(withTransactions = 1),
+              expenses = 100.asExpenses(withTransactions = 1),
+              categories = Map(
+                "test-category" -> TransactionBreakdown.ForCategory(
+                  income = 50.asIncome(withTransactions = 1),
+                  expenses = 100.asExpenses(withTransactions = 1)
+                )
+              )
+            ),
+            "2020-10-19" -> TransactionBreakdown.ForPeriod(
+              income = 150.asIncome(withTransactions = 1),
+              expenses = 200.asExpenses(withTransactions = 2),
+              categories = Map(
+                "test-category" -> TransactionBreakdown.ForCategory(
+                  income = 150.asIncome(withTransactions = 1),
+                  expenses = 200.asExpenses(withTransactions = 2)
+                )
+              )
+            ),
+            "2020-11-09" -> TransactionBreakdown.ForPeriod(
+              income = 75.asIncome(withTransactions = 1),
+              expenses = 200.asExpenses(withTransactions = 2),
+              categories = Map(
+                "test-category" -> TransactionBreakdown.ForCategory(
+                  income = 75.asIncome(withTransactions = 1),
+                  expenses = 100.asExpenses(withTransactions = 1)
+                ),
+                "other-category" -> TransactionBreakdown.ForCategory(
+                  income = 0.asIncome(withTransactions = 0),
+                  expenses = 100.asExpenses(withTransactions = 1)
+                )
+              )
+            )
+          )
+        ),
+        "USD" -> TransactionBreakdown.ForCurrency(
+          periods = Map(
+            "2020-10-19" -> TransactionBreakdown.ForPeriod(
+              income = 0.asIncome(withTransactions = 0),
+              expenses = 100.asExpenses(withTransactions = 1),
+              categories = Map(
+                "test-category" -> TransactionBreakdown.ForCategory(
+                  income = 0.asIncome(withTransactions = 0),
+                  expenses = 100.asExpenses(withTransactions = 1)
+                )
+              )
+            ),
+            "2020-12-21" -> TransactionBreakdown.ForPeriod(
               income = 42.asIncome(withTransactions = 1),
               expenses = 0.asExpenses(withTransactions = 0),
               categories = Map(

@@ -60,6 +60,7 @@ function initControls(accounts, currencies, selectedType, selectedStart, selecte
         <select class="form-select form-select-sm" id="breakdownType" aria-label="Breakdown">
             <option value="by-year" ${selectedType == 'by-year' ? 'selected' : ''}>By Year</option>
             <option value="by-month" ${selectedType == 'by-month' ? 'selected' : ''}>By Month</option>
+            <option value="by-week" ${selectedType == 'by-week' ? 'selected' : ''}>By Week</option>
             <option value="by-day" ${selectedType == 'by-day' ? 'selected' : ''}>By Day</option>
         </select>
     `;
