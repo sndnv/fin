@@ -65,6 +65,18 @@ class ManageSpec extends UnitSpec with ScalatestRouteTest {
     }
   }
 
+  they should "provide a forecast breakdown page" in {
+    val fixtures = new TestFixtures {}
+
+    Get("/forecast_breakdown") ~> fixtures.routes ~> check {
+      status should be(StatusCodes.OK)
+      val response = responseAs[String]
+
+      response should include("<!doctype html>")
+      response should include("<h4>Forecast Breakdown</h4>")
+    }
+  }
+
   they should "provide a reports page" in {
     val fixtures = new TestFixtures {}
 
@@ -128,6 +140,8 @@ class ManageSpec extends UnitSpec with ScalatestRouteTest {
     Get("/static/common.js") ~> fixtures.routes ~> check { status should be(StatusCodes.OK) }
     Get("/static/forecasts.css") ~> fixtures.routes ~> check { status should be(StatusCodes.OK) }
     Get("/static/forecasts.js") ~> fixtures.routes ~> check { status should be(StatusCodes.OK) }
+    Get("/static/forecastBreakdown.css") ~> fixtures.routes ~> check { status should be(StatusCodes.OK) }
+    Get("/static/forecastBreakdown.js") ~> fixtures.routes ~> check { status should be(StatusCodes.OK) }
     Get("/static/categories.css") ~> fixtures.routes ~> check { status should be(StatusCodes.OK) }
     Get("/static/categories.js") ~> fixtures.routes ~> check { status should be(StatusCodes.OK) }
     Get("/static/home.css") ~> fixtures.routes ~> check { status should be(StatusCodes.OK) }
@@ -153,6 +167,8 @@ class ManageSpec extends UnitSpec with ScalatestRouteTest {
     Get("/static/common.js") ~> fixtures.routes ~> check { status should be(StatusCodes.NotFound) }
     Get("/static/forecasts.css") ~> fixtures.routes ~> check { status should be(StatusCodes.NotFound) }
     Get("/static/forecasts.js") ~> fixtures.routes ~> check { status should be(StatusCodes.NotFound) }
+    Get("/static/forecastBreakdown.css") ~> fixtures.routes ~> check { status should be(StatusCodes.NotFound) }
+    Get("/static/forecastBreakdown.js") ~> fixtures.routes ~> check { status should be(StatusCodes.NotFound) }
     Get("/static/categories.css") ~> fixtures.routes ~> check { status should be(StatusCodes.NotFound) }
     Get("/static/categories.js") ~> fixtures.routes ~> check { status should be(StatusCodes.NotFound) }
     Get("/static/home.css") ~> fixtures.routes ~> check { status should be(StatusCodes.NotFound) }

@@ -1,6 +1,7 @@
 package fin.server.persistence.mocks
 
 import fin.server.model.{Account, Period, Transaction}
+import fin.server.persistence.Migration
 import fin.server.persistence.transactions.TransactionStore
 import org.apache.pekko.Done
 
@@ -13,6 +14,10 @@ import scala.jdk.CollectionConverters._
 
 class MockTransactionStore extends TransactionStore {
   private val store = new ConcurrentHashMap[UUID, Transaction]()
+
+  override val tableName: String = "mock-transaction-store"
+
+  override val migrations: Seq[Migration] = Seq.empty
 
   override def create(transaction: Transaction): Future[Done] = {
     store.put(transaction.id, transaction)

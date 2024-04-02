@@ -1,0 +1,16 @@
+tbody .dtrg-end:not(:last-child) {
+    border-color: rgba(0, 0, 0, 0.1);
+    background-image: linear-gradient(red, yellow);
+}
+
+tbody .dtrg-end th {
+    background-image: linear-gradient(to right, rgb(248,249,250), #e0e0e0);
+}
+
+tr.odd td:first-child, tr.even td:first-child {
+    padding-left: 1.5em;
+}
+
+.breakdown-text {
+    font-weight: normal;
+}

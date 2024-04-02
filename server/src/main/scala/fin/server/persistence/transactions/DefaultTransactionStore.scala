@@ -1,6 +1,7 @@
 package fin.server.persistence.transactions
 
 import fin.server.model.{Account, Period, Transaction}
+import fin.server.persistence.Migration
 import org.apache.pekko.Done
 import org.apache.pekko.actor.typed.{ActorSystem, DispatcherSelector}
 import slick.ast.BaseTypedType
@@ -12,9 +13,9 @@ import java.util.UUID
 import scala.concurrent.{ExecutionContext, Future}
 
 class DefaultTransactionStore(
-  tableName: String,
+  override val tableName: String,
   protected val profile: JdbcProfile,
-  protected val database: JdbcProfile#Backend#DatabaseDef
+  protected val database: JdbcProfile#Backend#Database
 )(implicit val system: ActorSystem[Nothing])
     extends TransactionStore {
   import profile.api._
@@ -56,6 +57,8 @@ class DefaultTransactionStore(
   )
 
   private val store = TableQuery[SlickTransactionStore]
+
+  override val migrations: Seq[Migration] = Seq.empty
 
   override def init(): Future[Done] =
     database.run(store.schema.create).map(_ => Done)

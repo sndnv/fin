@@ -7,8 +7,14 @@ import fin.server.model.{CategoryMapping, Period, Transaction}
 import fin.server.persistence.ServerPersistence
 import fin.server.persistence.accounts.AccountStore
 import fin.server.persistence.categories.CategoryMappingStore
-import fin.server.persistence.forecasts.ForecastStore
-import fin.server.persistence.mocks.{MockAccountStore, MockCategoryMappingStore, MockForecastStore, MockTransactionStore}
+import fin.server.persistence.forecasts.{ForecastBreakdownEntryStore, ForecastStore}
+import fin.server.persistence.mocks.{
+  MockAccountStore,
+  MockCategoryMappingStore,
+  MockForecastBreakdownEntryStore,
+  MockForecastStore,
+  MockTransactionStore
+}
 import fin.server.persistence.transactions.TransactionStore
 import fin.server.security.CurrentUser
 import org.apache.pekko.http.scaladsl.marshalling.Marshal
@@ -351,6 +357,7 @@ class CategoriesSpec extends UnitSpec with ScalatestRouteTest {
     lazy val accountStore: AccountStore = MockAccountStore()
     lazy val transactionStore: TransactionStore = MockTransactionStore()
     lazy val forecastStore: ForecastStore = MockForecastStore()
+    lazy val forecastBreakdownEntryStore: ForecastBreakdownEntryStore = MockForecastBreakdownEntryStore()
     lazy val categoryMappingStore: CategoryMappingStore = MockCategoryMappingStore()
 
     lazy implicit val context: RoutesContext = RoutesContext.collect(
@@ -358,6 +365,7 @@ class CategoriesSpec extends UnitSpec with ScalatestRouteTest {
         override val accounts: AccountStore = accountStore
         override val transactions: TransactionStore = transactionStore
         override val forecasts: ForecastStore = forecastStore
+        override val forecastBreakdownEntries: ForecastBreakdownEntryStore = forecastBreakdownEntryStore
         override val categoryMappings: CategoryMappingStore = categoryMappingStore
       }
     )

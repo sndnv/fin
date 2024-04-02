@@ -1,6 +1,7 @@
 package fin.server.persistence.mocks
 
 import fin.server.model.Account
+import fin.server.persistence.Migration
 import fin.server.persistence.accounts.AccountStore
 import org.apache.pekko.Done
 
@@ -11,6 +12,10 @@ import scala.jdk.CollectionConverters._
 
 class MockAccountStore extends AccountStore {
   private val store = new ConcurrentHashMap[Int, Account]()
+
+  override val tableName: String = "mock-account-store"
+
+  override val migrations: Seq[Migration] = Seq.empty
 
   override def create(account: Account): Future[Done] = {
     store.put(

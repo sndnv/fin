@@ -56,6 +56,20 @@ class DefaultServerPersistenceSpec extends UnitSpec {
       removed = None
     )
 
+    val expectedEntry = ForecastBreakdownEntry(
+      id = 0,
+      `type` = Transaction.Type.Debit,
+      account = 1,
+      amount = 123.4,
+      currency = "EUR",
+      date = LocalDate.now(),
+      category = "test-category",
+      notes = Some("test-notes"),
+      created = Instant.now(),
+      updated = Instant.now(),
+      removed = None
+    )
+
     val expectedCategoryMapping = CategoryMapping(
       id = 0,
       condition = CategoryMapping.Condition.Equals,
@@ -74,6 +88,8 @@ class DefaultServerPersistenceSpec extends UnitSpec {
       transactions <- persistence.transactions.all(forPeriod = Period.current)
       _ <- persistence.forecasts.create(expectedForecast)
       forecasts <- persistence.forecasts.all(forPeriod = Period.current)
+      _ <- persistence.forecastBreakdownEntries.create(expectedEntry)
+      entries <- persistence.forecastBreakdownEntries.all(forPeriod = Period.current)
       _ <- persistence.categoryMappings.create(expectedCategoryMapping)
       categoryMappings <- persistence.categoryMappings.all()
       _ <- persistence.drop()
@@ -81,6 +97,7 @@ class DefaultServerPersistenceSpec extends UnitSpec {
       accounts should be(Seq(expectedAccount.copy(id = 1)))
       transactions should be(Seq(expectedTransaction))
       forecasts should be(Seq(expectedForecast.copy(id = 1)))
+      entries should be(Seq(expectedEntry.copy(id = 1)))
       categoryMappings should be(Seq(expectedCategoryMapping.copy(id = 1)))
     }
   }
@@ -95,12 +112,39 @@ class DefaultServerPersistenceSpec extends UnitSpec {
       accountsFailure <- persistence.accounts.all().failed
       transactionsFailure <- persistence.transactions.all(forPeriod = Period.current).failed
       forecastsFailure <- persistence.forecasts.all(forPeriod = Period.current).failed
+      entriesFailure <- persistence.forecastBreakdownEntries.all(forPeriod = Period.current).failed
       categoryMappingsFailure <- persistence.categoryMappings.all().failed
     } yield {
       accountsFailure.getMessage should startWith("Table \"ACCOUNTS\" not found")
       transactionsFailure.getMessage should startWith("Table \"TRANSACTIONS\" not found")
       forecastsFailure.getMessage should startWith("Table \"FORECASTS\" not found")
+      entriesFailure.getMessage should startWith("Table \"FORECAST_BREAKDOWN_ENTRIES\" not found")
       categoryMappingsFailure.getMessage should startWith("Table \"CATEGORY_MAPPINGS\" not found")
+    }
+  }
+
+  it should "support running data store migrations" in {
+    val persistence = new DefaultServerPersistence(
+      persistenceConfig = config.getConfig("persistence.without-init")
+    )
+
+    for {
+      accountsFailure <- persistence.accounts.all().failed
+      transactionsFailure <- persistence.transactions.all(forPeriod = Period.current).failed
+      forecastsFailure <- persistence.forecasts.all(forPeriod = Period.current).failed
+      entriesFailure <- persistence.forecastBreakdownEntries.all(forPeriod = Period.current).failed
+      categoryMappingsFailure <- persistence.categoryMappings.all().failed
+      _ <- persistence.migrate()
+      // after running the migrations, this table should exist
+      entries <- persistence.forecastBreakdownEntries.all(forPeriod = Period.current)
+    } yield {
+      accountsFailure.getMessage should startWith("Table \"ACCOUNTS\" not found")
+      transactionsFailure.getMessage should startWith("Table \"TRANSACTIONS\" not found")
+      forecastsFailure.getMessage should startWith("Table \"FORECASTS\" not found")
+      entriesFailure.getMessage should startWith("Table \"FORECAST_BREAKDOWN_ENTRIES\" not found")
+      categoryMappingsFailure.getMessage should startWith("Table \"CATEGORY_MAPPINGS\" not found")
+
+      entries should be(empty)
     }
   }
 

@@ -6,34 +6,34 @@ name     := projectName
 licenses := Seq("Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0"))
 homepage := Some(url("https://github.com/sndnv/fin"))
 
-ThisBuild / scalaVersion := "2.13.12"
+ThisBuild / scalaVersion := "2.13.13"
 
 lazy val versions = new {
   // pekko
   val pekko         = "1.0.2"
-  val pekkoHttp     = "1.0.0"
-  val pekkoHttpCors = "1.0.0"
-  val pekkoJson     = "2.3.3"
+  val pekkoHttp     = "1.0.1"
+  val pekkoHttpCors = "1.0.1"
+  val pekkoJson     = "2.4.0"
 
   // persistence
-  val slick    = "3.4.1"
-  val postgres = "42.7.1"
+  val slick    = "3.5.0"
+  val postgres = "42.7.3"
   val h2       = "2.2.224"
 
   // telemetry
-  val openTelemetry           = "1.33.0"
+  val openTelemetry           = "1.36.0"
   val openTelemetryPrometheus = s"$openTelemetry-alpha"
   val prometheus              = "0.16.0"
 
   // testing
   val scalaCheck = "1.17.0"
-  val scalaTest  = "3.2.17"
+  val scalaTest  = "3.2.18"
   val mockito    = "1.17.30"
 
   // misc
-  val playJson    = "2.10.3"
-  val jose4j      = "0.9.4"
-  val logback     = "1.4.14"
+  val playJson    = "2.10.4"
+  val jose4j      = "0.9.6"
+  val logback     = "1.5.3"
   val jaxbApi     = "2.3.1"
   val scalaXml    = "2.2.0"
   val scalaParser = "2.3.0"

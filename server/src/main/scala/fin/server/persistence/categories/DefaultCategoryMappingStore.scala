@@ -1,6 +1,7 @@
 package fin.server.persistence.categories
 
 import fin.server.model.CategoryMapping
+import fin.server.persistence.Migration
 import org.apache.pekko.Done
 import org.apache.pekko.actor.typed.{ActorSystem, DispatcherSelector}
 import slick.ast.BaseTypedType
@@ -11,9 +12,9 @@ import java.time.Instant
 import scala.concurrent.{ExecutionContext, Future}
 
 class DefaultCategoryMappingStore(
-  tableName: String,
+  override val tableName: String,
   protected val profile: JdbcProfile,
-  protected val database: JdbcProfile#Backend#DatabaseDef
+  protected val database: JdbcProfile#Backend#Database
 )(implicit val system: ActorSystem[Nothing])
     extends CategoryMappingStore {
   import profile.api._
@@ -45,6 +46,8 @@ class DefaultCategoryMappingStore(
     )
 
   private val store = TableQuery[SlickCategoryMappingStore]
+
+  override val migrations: Seq[Migration] = Seq.empty
 
   override def init(): Future[Done] =
     database.run(store.schema.create).map(_ => Done)

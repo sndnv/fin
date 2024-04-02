@@ -8,8 +8,14 @@ import fin.server.model.{Account, CategoryMapping, Forecast, Transaction}
 import fin.server.persistence.ServerPersistence
 import fin.server.persistence.accounts.AccountStore
 import fin.server.persistence.categories.CategoryMappingStore
-import fin.server.persistence.forecasts.ForecastStore
-import fin.server.persistence.mocks.{MockAccountStore, MockCategoryMappingStore, MockForecastStore, MockTransactionStore}
+import fin.server.persistence.forecasts.{ForecastBreakdownEntryStore, ForecastStore}
+import fin.server.persistence.mocks.{
+  MockAccountStore,
+  MockCategoryMappingStore,
+  MockForecastBreakdownEntryStore,
+  MockForecastStore,
+  MockTransactionStore
+}
 import fin.server.persistence.transactions.TransactionStore
 import fin.server.security.authenticators.UserAuthenticator
 import fin.server.security.mocks.MockUserAuthenticator
@@ -257,6 +263,7 @@ class ApiEndpointSpec extends UnitSpec with ScalatestRouteTest {
         }
         override val transactions: TransactionStore = MockTransactionStore()
         override val forecasts: ForecastStore = MockForecastStore()
+        override val forecastBreakdownEntries: ForecastBreakdownEntryStore = MockForecastBreakdownEntryStore()
         override val categoryMappings: CategoryMappingStore = MockCategoryMappingStore()
       },
       authenticator = new MockUserAuthenticator(testUser, testPassword)
@@ -294,6 +301,7 @@ class ApiEndpointSpec extends UnitSpec with ScalatestRouteTest {
         override val accounts: AccountStore = MockAccountStore()
         override val transactions: TransactionStore = MockTransactionStore()
         override val forecasts: ForecastStore = MockForecastStore()
+        override val forecastBreakdownEntries: ForecastBreakdownEntryStore = MockForecastBreakdownEntryStore()
         override val categoryMappings: CategoryMappingStore = MockCategoryMappingStore()
       },
       authenticator = new MockUserAuthenticator(testUser, testPassword)
@@ -336,6 +344,7 @@ class ApiEndpointSpec extends UnitSpec with ScalatestRouteTest {
     lazy val accountStore: AccountStore = MockAccountStore()
     lazy val transactionStore: TransactionStore = MockTransactionStore()
     lazy val forecastStore: ForecastStore = MockForecastStore()
+    lazy val forecastBreakdownEntryStore: ForecastBreakdownEntryStore = MockForecastBreakdownEntryStore()
     lazy val categoryMappingStore: CategoryMappingStore = MockCategoryMappingStore()
 
     private lazy val authenticator: UserAuthenticator = new MockUserAuthenticator(testUser, testPassword)
@@ -346,6 +355,7 @@ class ApiEndpointSpec extends UnitSpec with ScalatestRouteTest {
         override val accounts: AccountStore = accountStore
         override val transactions: TransactionStore = transactionStore
         override val forecasts: ForecastStore = forecastStore
+        override val forecastBreakdownEntries: ForecastBreakdownEntryStore = forecastBreakdownEntryStore
         override val categoryMappings: CategoryMappingStore = categoryMappingStore
       },
       authenticator = authenticator

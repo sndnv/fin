@@ -1,12 +1,13 @@
 package fin.server.persistence.transactions
 
 import fin.server.model.{Account, Period, Transaction}
+import fin.server.persistence.Store
 import org.apache.pekko.Done
 
 import java.time.LocalDate
 import scala.concurrent.Future
 
-trait TransactionStore {
+trait TransactionStore extends Store {
   def create(transaction: Transaction): Future[Done]
   def load(transactions: Seq[Transaction]): Future[(Int, Int)]
   def update(transaction: Transaction): Future[Done]
@@ -18,7 +19,4 @@ trait TransactionStore {
   def search(query: String): Future[Seq[Transaction]]
   def categories(): Future[Seq[String]]
   def between(start: LocalDate, end: LocalDate, account: Account.Id): Future[Seq[Transaction]]
-
-  def init(): Future[Done]
-  def drop(): Future[Done]
 }

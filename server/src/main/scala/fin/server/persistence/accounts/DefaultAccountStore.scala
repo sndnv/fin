@@ -1,6 +1,7 @@
 package fin.server.persistence.accounts
 
 import fin.server.model.Account
+import fin.server.persistence.Migration
 import org.apache.pekko.Done
 import org.apache.pekko.actor.typed.{ActorSystem, DispatcherSelector}
 import slick.jdbc.JdbcProfile
@@ -10,9 +11,9 @@ import java.time.Instant
 import scala.concurrent.{ExecutionContext, Future}
 
 class DefaultAccountStore(
-  tableName: String,
+  override val tableName: String,
   protected val profile: JdbcProfile,
-  protected val database: JdbcProfile#Backend#DatabaseDef
+  protected val database: JdbcProfile#Backend#Database
 )(implicit val system: ActorSystem[Nothing])
     extends AccountStore {
   import profile.api._
@@ -36,6 +37,8 @@ class DefaultAccountStore(
   }
 
   private val store = TableQuery[SlickAccountStore]
+
+  override val migrations: Seq[Migration] = Seq.empty
 
   override def init(): Future[Done] =
     database.run(store.schema.create).map(_ => Done)
