@@ -2,12 +2,12 @@ package fin.server.api.routes
 
 import fin.server.UnitSpec
 import fin.server.api.responses.{TransactionBreakdown, TransactionSummary}
-import fin.server.model.{Forecast, Transaction}
+import fin.server.model.{Forecast, ForecastBreakdownEntry, Transaction}
 import fin.server.persistence.ServerPersistence
 import fin.server.persistence.accounts.AccountStore
 import fin.server.persistence.categories.CategoryMappingStore
-import fin.server.persistence.forecasts.ForecastStore
-import fin.server.persistence.mocks.{MockAccountStore, MockCategoryMappingStore, MockForecastStore, MockTransactionStore}
+import fin.server.persistence.forecasts.{ForecastBreakdownEntryStore, ForecastStore}
+import fin.server.persistence.mocks._
 import fin.server.persistence.transactions.TransactionStore
 import fin.server.security.CurrentUser
 import org.apache.pekko.http.scaladsl.model.StatusCodes
@@ -26,11 +26,19 @@ class ReportsSpec extends UnitSpec with ScalatestRouteTest {
   "Reports routes" should "retrieve all transaction and forecast categories" in {
     val fixtures = new TestFixtures {}
     Future.sequence(forecasts.map(fixtures.forecastStore.create)).await
+    Future.sequence(forecastBreakdownEntries.map(fixtures.forecastBreakdownEntryStore.create)).await
     Future.sequence(transactions.map(fixtures.transactionStore.create)).await
 
     Get("/categories") ~> fixtures.routes ~> check {
       status should be(StatusCodes.OK)
-      responseAs[Seq[String]].sorted should be(Seq("test-category-1", "test-category-2", "test-category-3"))
+      responseAs[Seq[String]].sorted should be(
+        Seq(
+          "test-category-1",
+          "test-category-2",
+          "test-category-3",
+          "test-category-4"
+        )
+      )
     }
   }
 
@@ -207,6 +215,7 @@ class ReportsSpec extends UnitSpec with ScalatestRouteTest {
     lazy val accountStore: AccountStore = MockAccountStore()
     lazy val transactionStore: TransactionStore = MockTransactionStore()
     lazy val forecastStore: ForecastStore = MockForecastStore()
+    lazy val forecastBreakdownEntryStore: ForecastBreakdownEntryStore = MockForecastBreakdownEntryStore()
     lazy val categoryMappingStore: CategoryMappingStore = MockCategoryMappingStore()
 
     lazy implicit val context: RoutesContext = RoutesContext.collect(
@@ -214,6 +223,7 @@ class ReportsSpec extends UnitSpec with ScalatestRouteTest {
         override val accounts: AccountStore = accountStore
         override val transactions: TransactionStore = transactionStore
         override val forecasts: ForecastStore = forecastStore
+        override val forecastBreakdownEntries: ForecastBreakdownEntryStore = forecastBreakdownEntryStore
         override val categoryMappings: CategoryMappingStore = categoryMappingStore
       }
     )
@@ -248,6 +258,22 @@ class ReportsSpec extends UnitSpec with ScalatestRouteTest {
       category = "test-category-3",
       notes = Some("test-notes"),
       disregardAfter = 1,
+      created = Instant.now(),
+      updated = Instant.now(),
+      removed = None
+    )
+  )
+
+  private val forecastBreakdownEntries = Seq(
+    ForecastBreakdownEntry(
+      id = 1,
+      `type` = Transaction.Type.Debit,
+      account = 1,
+      amount = 123.4,
+      currency = "EUR",
+      date = LocalDate.now(),
+      category = "test-category-4",
+      notes = Some("test-notes"),
       created = Instant.now(),
       updated = Instant.now(),
       removed = None

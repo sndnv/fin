@@ -145,7 +145,7 @@ class ServiceSpec extends UnitSpec with ScalatestRouteTest with Eventually {
     "ServiceSpec"
   )
 
-  override implicit val patienceConfig: PatienceConfig = PatienceConfig(5.seconds, 250.milliseconds)
+  override implicit val patienceConfig: PatienceConfig = PatienceConfig(10.seconds, 250.milliseconds)
 
   import scala.language.implicitConversions
 

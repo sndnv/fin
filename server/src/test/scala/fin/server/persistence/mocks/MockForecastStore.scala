@@ -1,6 +1,7 @@
 package fin.server.persistence.mocks
 
 import fin.server.model.{Forecast, Period}
+import fin.server.persistence.Migration
 import fin.server.persistence.forecasts.ForecastStore
 import org.apache.pekko.Done
 
@@ -12,6 +13,10 @@ import scala.jdk.CollectionConverters._
 
 class MockForecastStore extends ForecastStore {
   private val store = new ConcurrentHashMap[Int, Forecast]()
+
+  override val tableName: String = "mock-forecast-store"
+
+  override val migrations: Seq[Migration] = Seq.empty
 
   override def create(forecast: Forecast): Future[Done] = {
     store.put(

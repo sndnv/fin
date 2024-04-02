@@ -1,6 +1,7 @@
 package fin.server.persistence.mocks
 
 import fin.server.model.CategoryMapping
+import fin.server.persistence.Migration
 import fin.server.persistence.categories.CategoryMappingStore
 import org.apache.pekko.Done
 
@@ -11,6 +12,10 @@ import scala.jdk.CollectionConverters._
 
 class MockCategoryMappingStore extends CategoryMappingStore {
   private val store = new ConcurrentHashMap[Int, CategoryMapping]()
+
+  override val tableName: String = "mock-category-mapping-store"
+
+  override val migrations: Seq[Migration] = Seq.empty
 
   override def create(categoryMapping: CategoryMapping): Future[Done] = {
     store.put(

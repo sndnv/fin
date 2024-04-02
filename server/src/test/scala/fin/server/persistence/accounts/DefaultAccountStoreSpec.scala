@@ -186,6 +186,16 @@ class DefaultAccountStoreSpec extends UnitSpec with BeforeAndAfterAll {
     }
   }
 
+  it should "provide a list of migrations" in {
+    val store = new DefaultAccountStore(
+      tableName = "DefaultAccountStoreSpec",
+      profile = H2Profile,
+      database = h2db
+    )
+
+    store.migrations should be(empty)
+  }
+
   private implicit val typedSystem: ActorSystem[Nothing] = ActorSystem(
     guardianBehavior = Behaviors.ignore,
     name = "DefaultAccountStoreSpec"

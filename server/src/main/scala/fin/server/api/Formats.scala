@@ -47,6 +47,13 @@ object Formats {
   implicit val createForecastFormat: Format[CreateForecast] = Json.format[CreateForecast]
   implicit val updateForecastFormat: Format[UpdateForecast] = Json.format[UpdateForecast]
 
+  implicit val forecastBreakdownEntryFormat: Format[ForecastBreakdownEntry] =
+    Json.format[ForecastBreakdownEntry]
+  implicit val createForecastBreakdownEntryFormat: Format[CreateForecastBreakdownEntry] =
+    Json.format[CreateForecastBreakdownEntry]
+  implicit val updateForecastBreakdownEntryFormat: Format[UpdateForecastBreakdownEntry] =
+    Json.format[UpdateForecastBreakdownEntry]
+
   implicit val stringToPeriod: Unmarshaller[String, Period] = Unmarshaller.strict(Period.apply)
 
   implicit val transactionSummaryForCurrencyFormat: Format[TransactionSummary.ForCurrency] =

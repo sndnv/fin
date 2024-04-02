@@ -23,8 +23,9 @@ class Reports()(implicit ctx: RoutesContext) extends ApiRoutes {
           val result = for {
             fromTransactions <- ctx.persistence.transactions.categories()
             fromForecasts <- ctx.persistence.forecasts.categories()
+            fromForecastBreakdownEntries <- ctx.persistence.forecastBreakdownEntries.categories()
           } yield {
-            (fromTransactions ++ fromForecasts).distinct
+            (fromTransactions ++ fromForecasts ++ fromForecastBreakdownEntries).distinct
           }
 
           onSuccess(result) { categories =>

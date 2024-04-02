@@ -159,6 +159,7 @@ trait Service {
   def start(): Future[Done] =
     for {
       _ <- serverPersistence.init()
+      _ <- serverPersistence.migrate()
       _ = log.info("Service API starting on [{}:{}]...", apiConfig.interface, apiConfig.port)
       _ <- endpoint.start(
         interface = apiConfig.interface,

@@ -18,6 +18,7 @@ class Manage(config: Manage.Config)(implicit mode: ServiceMode) {
       path("accounts") { completeWithHtml(html.accounts.render()) },
       path("transactions") { completeWithHtml(html.transactions.render()) },
       path("forecasts") { completeWithHtml(html.forecasts.render()) },
+      path("forecast_breakdown") { completeWithHtml(html.forecastBreakdown.render()) },
       path("reports") { completeWithHtml(html.reports.render()) },
       path("categories") { completeWithHtml(html.categories.render()) },
       pathPrefix("login") {
